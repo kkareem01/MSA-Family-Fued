@@ -14,6 +14,7 @@ import { createTallyService } from './services/tallyService';
 import { createSettingsService } from './services/settingsService';
 import { createGameService } from './services/gameService';
 import { registerErrorHandler } from './plugins/errorHandler';
+import { registerStaticSite } from './plugins/staticSite';
 import { DEFAULT_RATE_LIMITS, registerRateLimit, type RateLimits } from './plugins/rateLimit';
 import { createHostGuard } from './plugins/hostAuth';
 import { registerRoutes } from './routes';
@@ -46,7 +47,8 @@ export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, n
   const settingsService = createSettingsService({ settings: createSettingsRepo(db), config, now });
   const gameService = createGameService({ gameState: createGameStateRepo(db), questionService, now, log: app.log });
 
-  registerErrorHandler(app);
+  const { spaFallback } = await registerStaticSite(app, config);
+  registerErrorHandler(app, { spaFallback });
   await registerRateLimit(app, rateLimits);
   const services = { auth, questionService, surveyService, tallyService, settingsService, gameService };
   registerRoutes(app, { ...services, requireHost: createHostGuard(auth), rateLimits });

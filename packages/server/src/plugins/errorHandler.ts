@@ -5,7 +5,16 @@ import { AppError } from '../services/errors';
 
 type HttpError = Error & { statusCode?: number };
 
-export function registerErrorHandler(app: FastifyInstance): void {
+export type ErrorHandlerOptions = Readonly<{ spaFallback: boolean }>;
+
+/** Paths that are files, not app routes: a miss there must be a real 404, never the SPA shell. */
+const NON_SPA_PREFIXES = ['/api/', '/socket.io', '/sounds/', '/assets/', '/fonts/'] as const;
+
+function wantsSpaPage(method: string, url: string): boolean {
+  return method === 'GET' && !NON_SPA_PREFIXES.some((prefix) => url.startsWith(prefix));
+}
+
+export function registerErrorHandler(app: FastifyInstance, options: ErrorHandlerOptions): void {
   app.setErrorHandler((error: HttpError, request, reply) => {
     if (error instanceof ZodError) {
       return reply.code(400).send(apiFail('validation', 'Invalid request', error.issues));
@@ -22,7 +31,11 @@ export function registerErrorHandler(app: FastifyInstance): void {
     return reply.code(500).send(apiFail('internal', 'Something went wrong on the server'));
   });
 
-  app.setNotFoundHandler((request, reply) =>
-    reply.code(404).send(apiFail('not_found', `Route ${request.method} ${request.url} not found`)),
-  );
+  /** Unknown app routes get the SPA shell (client-side routing); everything else is a JSON 404. */
+  app.setNotFoundHandler((request, reply) => {
+    if (options.spaFallback && wantsSpaPage(request.method, request.url)) {
+      return reply.header('cache-control', 'no-cache').sendFile('index.html');
+    }
+    return reply.code(404).send(apiFail('not_found', `Route ${request.method} ${request.url} not found`));
+  });
 }
