@@ -1,0 +1,33 @@
+{
+  "name": "msa-family-feud",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MSA Family Feud: projector game board, host panel, audience survey, and phone buzzers.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,magenta \"npm run dev -w @feud/server\" \"npm run dev -w @feud/web\"",
+    "build": "npm run typecheck && npm run build -w @feud/web",
+    "start": "node --no-warnings=ExperimentalWarning --import tsx packages/server/src/main.ts",
+    "event": "npm run build && node --no-warnings=ExperimentalWarning --import tsx scripts/event.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "e2e": "npm run build && playwright test",
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/server && tsc --noEmit -p packages/web && tsc --noEmit -p scripts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.13.4",
+    "@vitest/coverage-v8": "^4.1.11",
+    "concurrently": "^10.0.5",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

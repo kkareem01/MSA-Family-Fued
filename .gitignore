@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+data/*
+!data/.gitkeep
+.env
+sounds/*.mp3
+sounds/*.wav
+sounds/*.ogg
+playwright-report/
+test-results/
+*.tsbuildinfo
+.DS_Store
