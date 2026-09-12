@@ -58,6 +58,7 @@ export function createQuestionRepo(db: Database) {
   const listStmt = db.prepare(`${SUMMARY_SQL} ORDER BY q.sort_order, q.created_at`);
   const listByStatusStmt = db.prepare(`${SUMMARY_SQL} WHERE q.status = ? ORDER BY q.sort_order, q.created_at`);
   const getStmt = db.prepare('SELECT * FROM questions WHERE id = ?');
+  const getSummaryStmt = db.prepare(`${SUMMARY_SQL} WHERE q.id = ?`);
   const nextOrderStmt = db.prepare('SELECT COALESCE(MAX(sort_order), 0) + 1 AS next FROM questions');
   const insertStmt = db.prepare(
     'INSERT INTO questions (id, prompt, status, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
@@ -73,6 +74,10 @@ export function createQuestionRepo(db: Database) {
     list: (): QuestionSummary[] => (listStmt.all() as RawRow[]).map(toSummary),
     listByStatus: (status: QuestionStatus): QuestionSummary[] => (listByStatusStmt.all(status) as RawRow[]).map(toSummary),
     get,
+    getSummary(id: string): QuestionSummary | null {
+      const raw = getSummaryStmt.get(id) as RawRow | undefined;
+      return raw ? toSummary(raw) : null;
+    },
     insert(input: Readonly<{ prompt: string }>, now: number = Date.now()): QuestionRow {
       const id = randomUUID();
       const { next } = nextOrderStmt.get() as { next: number };
