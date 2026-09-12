@@ -309,3 +309,79 @@ code {
     place-items: center;
   }
 }
+
+/* ---------- questions & tally ---------- */
+.question-list,
+.tally-list,
+.hidden-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.question-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+
+.question-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.question-prompt {
+  font-size: 1.05rem;
+}
+
+.question-prompt-big {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.tally-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: #f2f4f9;
+}
+
+.tally-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.points-input {
+  width: 72px;
+  min-height: 36px;
+  padding: 4px 8px;
+}
+
+.merge-select {
+  width: auto;
+  min-height: 36px;
+  padding: 4px 8px;
+  flex: 1 1 140px;
+}
+
+.hidden-list {
+  margin-top: 10px;
+}
+
+input[type='range'] {
+  width: 100%;
+  min-height: var(--tap);
+}

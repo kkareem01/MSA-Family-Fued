@@ -1,0 +1,25 @@
+import { Link } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { APP_NAME } from '@feud/shared';
+import { useHostSession } from '../../auth/HostPinContext';
+
+type Props = Readonly<{ title: string; back?: { to: string; label: string }; children?: ReactNode }>;
+
+/** Shared header for the host sub-pages (questions, tally). */
+export function HostChrome({ title, back, children }: Props) {
+  const { signOut } = useHostSession();
+  return (
+    <header className="host-header stack">
+      <div className="row row-between">
+        <span className="display-title">{APP_NAME}</span>
+        <div className="row">
+          <Link className="btn btn-ghost btn-inline" to="/host">Host panel</Link>
+          <button className="btn btn-ghost btn-inline" type="button" onClick={signOut}>Sign out</button>
+        </div>
+      </div>
+      {back ? <Link className="small" to={back.to}>← {back.label}</Link> : null}
+      <h1>{title}</h1>
+      {children}
+    </header>
+  );
+}
