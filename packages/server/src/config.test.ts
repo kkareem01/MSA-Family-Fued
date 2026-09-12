@@ -1,0 +1,39 @@
+import { describe, expect, it } from 'vitest';
+import { loadConfig } from './config';
+
+describe('loadConfig', () => {
+  it('applies defaults and coerces numbers', () => {
+    const config = loadConfig({ HOST_PIN: 'secret-pin' }, '/repo');
+    expect(config.port).toBe(3000);
+    expect(config.hostPin).toBe('secret-pin');
+    expect(config.dbPath).toBe('/repo/data/feud.db');
+    expect(config.soundsDir).toBe('/repo/sounds');
+    expect(config.webDist).toBe('/repo/packages/web/dist');
+    expect(config.publicUrl).toBeNull();
+    expect(config.logLevel).toBe('info');
+    expect(config.nodeEnv).toBe('development');
+  });
+
+  it('reads overrides and resolves relative paths against the repo root', () => {
+    const config = loadConfig(
+      { HOST_PIN: 'abcd', PORT: '4100', DB_PATH: ':memory:', SOUNDS_DIR: '/abs/sounds', PUBLIC_URL: 'https://x.trycloudflare.com/', LOG_LEVEL: 'warn', NODE_ENV: 'production' },
+      '/repo',
+    );
+    expect(config.port).toBe(4100);
+    expect(config.dbPath).toBe(':memory:');
+    expect(config.soundsDir).toBe('/abs/sounds');
+    expect(config.publicUrl).toBe('https://x.trycloudflare.com');
+    expect(config.logLevel).toBe('warn');
+    expect(config.nodeEnv).toBe('production');
+  });
+
+  it('rejects a missing or short PIN and a bad port', () => {
+    expect(() => loadConfig({}, '/repo')).toThrow(/HOST_PIN/);
+    expect(() => loadConfig({ HOST_PIN: '12' }, '/repo')).toThrow(/HOST_PIN/);
+    expect(() => loadConfig({ HOST_PIN: 'abcd', PORT: 'nope' }, '/repo')).toThrow(/PORT/);
+  });
+
+  it('treats a blank PUBLIC_URL as unset', () => {
+    expect(loadConfig({ HOST_PIN: 'abcd', PUBLIC_URL: '' }, '/repo').publicUrl).toBeNull();
+  });
+});
