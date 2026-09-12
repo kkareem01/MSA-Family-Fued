@@ -1,21 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import type { QuestionStatus } from '@feud/shared';
+import type { QuestionRow, QuestionStatus, QuestionSummary } from '@feud/shared';
 import type { Database } from '../db/connection';
 
-export type QuestionRow = Readonly<{
-  id: string;
-  prompt: string;
-  status: QuestionStatus;
-  sortOrder: number;
-  createdAt: number;
-  updatedAt: number;
-  openedAt: number | null;
-  closedAt: number | null;
-  finalizedAt: number | null;
-  playedAt: number | null;
-}>;
-
-export type QuestionSummary = Readonly<QuestionRow & { responseCount: number; hasBoard: boolean }>;
+export type { QuestionRow, QuestionSummary };
 
 type RawRow = Record<string, unknown>;
 

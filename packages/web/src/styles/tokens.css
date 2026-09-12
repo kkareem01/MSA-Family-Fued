@@ -1,0 +1,39 @@
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('/fonts/BebasNeue-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --feud-blue: #0d2a8c;
+  --feud-blue-deep: #061443;
+  --feud-blue-light: #1d47c9;
+  --feud-blue-glow: #2f63ff;
+  --feud-gold: #f6b400;
+  --feud-gold-dark: #b57c00;
+  --feud-gold-light: #ffd45c;
+  --feud-red: #e11d2b;
+  --feud-red-deep: #8f0c15;
+  --feud-white: #ffffff;
+  --feud-cream: #fff5cc;
+
+  --ink: #0b1220;
+  --paper: #f5f6fa;
+  --card: #ffffff;
+  --muted: #5b6475;
+  --line: #d9dee8;
+  --ok: #1f9d55;
+  --warn: #d97706;
+  --danger: #dc2626;
+
+  --font-display: 'Bebas Neue', 'Impact', 'Arial Narrow Bold', 'Helvetica Neue', sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-soft: 0 4px 14px rgba(11, 18, 32, 0.12);
+  --tap: 48px;
+}
