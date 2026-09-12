@@ -41,3 +41,7 @@ export const QUESTION_PROMPT_MAX_LEN = 200;
 export const SURVEY_ANSWER_MAX_LEN = 80;
 export const SURVEY_MAX_ANSWERS_PER_SUBMIT = 20;
 export const POINTS_SCALE = 100;
+
+export const QUESTION_STATUSES = ['draft', 'open', 'closed', 'finalized', 'played'] as const;
+export const MERGE_CHAIN_MAX_DEPTH = 10;
+export const SINGULARIZE_MIN_LEN = 4;
