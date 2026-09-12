@@ -18,6 +18,8 @@ import { DEFAULT_RATE_LIMITS, registerRateLimit, type RateLimits } from './plugi
 import { createHostGuard } from './plugins/hostAuth';
 import { registerRoutes } from './routes';
 import type { RouteDeps } from './routes/deps';
+import { attachSockets } from './sockets/attach';
+import type { FeudServer } from './sockets/types';
 
 export type BuildAppOptions = Readonly<{
   config: ServerConfig;
@@ -26,9 +28,9 @@ export type BuildAppOptions = Readonly<{
   now?: () => number;
 }>;
 
-export type BuiltApp = Readonly<{ app: FastifyInstance; services: Omit<RouteDeps, 'requireHost' | 'rateLimits'> }>;
+export type BuiltApp = Readonly<{ app: FastifyInstance; io: FeudServer; services: Omit<RouteDeps, 'requireHost' | 'rateLimits'> }>;
 
-/** Wires repositories, services, plugins and routes onto a Fastify instance. Sockets attach in `attachSockets`. */
+/** Wires repositories, services, plugins, routes and Socket.IO onto one Fastify instance. */
 export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, now = Date.now }: BuildAppOptions): Promise<BuiltApp> {
   const app = Fastify({ logger: config.logLevel === 'silent' ? false : { level: config.logLevel } });
 
@@ -48,6 +50,7 @@ export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, n
   await registerRateLimit(app, rateLimits);
   const services = { auth, questionService, surveyService, tallyService, settingsService, gameService };
   registerRoutes(app, { ...services, requireHost: createHostGuard(auth), rateLimits });
+  const io = attachSockets(app, { auth, gameService, settingsService, now });
 
-  return { app, services };
+  return { app, io, services };
 }

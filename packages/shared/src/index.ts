@@ -21,3 +21,6 @@ export * from './schemas/tally';
 export * from './schemas/settings';
 export * from './schemas/auth';
 export * from './schemas/api';
+export * from './protocol/rooms';
+export * from './protocol/events';
+export * from './schemas/socket';
