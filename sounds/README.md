@@ -14,3 +14,6 @@ Drop an `.mp3` in this folder to override a cue. File name must match the cue na
 | `theme.mp3`       | Optional loop, started from the host panel    |
 
 Audio files are git-ignored. Restart is not required; the display page checks on load.
+
+All sounds, files or synthesized, run through one master bus (gain plus a light compressor), so
+overlapping cues do not clip. The host panel's sound test plays overrides on the host device too.

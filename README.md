@@ -24,6 +24,20 @@ cp .env.example .env      # then edit HOST_PIN
 Set `HOST_PIN` in `.env` to something only the host knows. It protects the host panel and the
 question editor.
 
+## Pages
+
+| Page | Who | What |
+|---|---|---|
+| `/` | Host | Start here: the four steps (set up, survey, test, play) and links to everything |
+| `/guide` | Host | The full guide, printable |
+| `/display` | Projector | The game board. Click once to turn on sound and go fullscreen |
+| `/host` | Host phone | Control panel: what to do now, round steps, board, strikes, sound test, settings |
+| `/host/questions` | Host | Write questions, open and close surveys, tally, finalize boards |
+| `/host/share` | Host | The survey QR code: copy, print, or show it on the projector |
+| `/host/checks` | Host | Live pre-show checks: projector, sound, link, buzzers, boards |
+| `/survey` | Audience | What the QR code opens |
+| `/buzzer` | Two players | Face-off buzzer, one per team |
+
 ## Hosting it online (no laptop server, no tunnel)
 
 The whole game is one long-running Node server with WebSockets and a SQLite file, so it needs a
@@ -82,13 +96,16 @@ fly deploy
 3. **Host panel**: open `http://localhost:3000/host` in another window, or on your phone using the
    LAN address printed in the terminal. Enter the PIN once; it is remembered.
 
-4. **Survey link**: the projector's idle screen shows a big QR code as soon as the tunnel is up.
-   Share it before the event too: the survey is open whenever a question is marked *open*.
+4. **Survey link**: Host → **Share QR** shows the code and the link. *Show on projector* puts a
+   giant QR plus the open questions on the big screen at any point in the game. The idle screen
+   always shows it too. Share it before the event: the survey is open whenever a question is *open*.
 
 5. **Buzzers**: in Host → *Settings, links and buzzer codes* there is a link and a 4-letter code
    per team. Send each face-off player their link (or the code and the `/buzzer` address).
 
-6. **Test sounds**: Host → *Sound test*. Each button plays on the projector.
+6. **Test everything**: Host → **Checks** goes green row by row as the projector, its sound, the
+   public link, both buzzers and a finalized board come online. Host → *Sound test* plays each cue
+   on your phone and on the projector.
 
 ## Question workflow
 
@@ -114,13 +131,21 @@ are single points, round 3 double, round 4 and later triple (change under Settin
 
 ## Sounds
 
-Every cue is synthesized, so it works out of the box. Drop `reveal.mp3`, `strike.mp3`,
-`buzz.mp3`, `round_start.mp3`, `round_win.mp3`, `win.mp3` or `theme.mp3` into `sounds/` to
-override any of them (see `sounds/README.md`). Reload the display page after adding files.
+Every cue is synthesized, so it works out of the box. Game cues play on the projector; the host
+panel's *Sound test* also plays them on your own phone, so you can hear them without the room.
+The projector shows a 🔇 badge whenever the browser is blocking audio: click the screen once and
+it goes away. Tapping *Theme* again stops it.
+
+Drop `reveal.mp3`, `strike.mp3`, `buzz.mp3`, `round_start.mp3`, `round_win.mp3`, `win.mp3` or
+`theme.mp3` into `sounds/` to override any of them (see `sounds/README.md`). Reload the display
+page after adding files.
 
 ## If something goes wrong
 
-- **No sound on the projector**: click the display page once. Browsers block audio until then.
+- **No sound on the projector**: click the display page once; browsers block audio until then.
+  The 🔇 badge in the corner tells you when audio is blocked, and Host → Checks shows
+  "Projector sound is on" once it works. The host sound test also plays on your phone, so silence
+  there means the phone is muted, not the game.
 - **Server crashed / laptop rebooted**: run `npm run event` again. Scores, the board, strikes and
   every survey answer come back from `data/feud.db`. The tunnel URL changes, so show the new QR.
 - **Tunnel failed**: the game still runs. Use `--no-tunnel` on the same wifi, or paste any public
