@@ -68,8 +68,9 @@ async function main(): Promise<void> {
   }
 
   console.log('Opening a Cloudflare tunnel for audience phones…');
-  const tunnel = startTunnel(port);
+  const tunnel = startTunnel(port, { onWarning: (line) => console.warn(`[cloudflared] ${line}`) });
   children.push(tunnel.child);
+  console.log(`(cloudflared log: ${tunnel.logPath})`);
   try {
     const publicUrl = await tunnel.url;
     await registerPublicUrl(base, pin, publicUrl);

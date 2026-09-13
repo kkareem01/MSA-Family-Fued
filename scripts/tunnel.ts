@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { createWriteStream, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -7,6 +7,12 @@ export const TUNNEL_URL_RE = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/u;
 const DEFAULT_TIMEOUT_MS = 60_000;
 const DEFAULT_BINARY = 'cloudflared';
 const EMPTY_CONFIG_NAME = 'msa-feud-cloudflared.yml';
+const LOG_NAME = 'msa-feud-cloudflared.log';
+const NOISY_LEVELS = /\b(ERR|WRN)\b/u;
+
+export function tunnelLogPath(dir: string = tmpdir()): string {
+  return join(dir, LOG_NAME);
+}
 
 /**
  * A quick tunnel must not inherit the user's own ~/.cloudflared/config.yml: its ingress rules
@@ -27,15 +33,34 @@ export function parseTunnelUrl(text: string): string | null {
   return TUNNEL_URL_RE.exec(text)?.[0] ?? null;
 }
 
-export type Tunnel = Readonly<{ child: ChildProcess; url: Promise<string> }>;
+export type Tunnel = Readonly<{ child: ChildProcess; url: Promise<string>; logPath: string }>;
 
-export type TunnelOptions = Readonly<{ timeoutMs?: number; binary?: string; configPath?: string }>;
+export type TunnelOptions = Readonly<{
+  timeoutMs?: number;
+  binary?: string;
+  configPath?: string;
+  /** Receives cloudflared warnings and errors as they happen. */
+  onWarning?: (line: string) => void;
+}>;
 
 /** Starts a Cloudflare quick tunnel to localhost:port and resolves with its https URL. */
 export function startTunnel(port: number, options: TunnelOptions = {}): Tunnel {
   const binary = options.binary ?? DEFAULT_BINARY;
   const configPath = options.configPath ?? writeEmptyTunnelConfig();
+  const logPath = tunnelLogPath();
+  const log = createWriteStream(logPath, { flags: 'w' });
   const child = spawn(binary, [...tunnelArgs(port, configPath)], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const forward = (chunk: Buffer) => {
+    log.write(chunk);
+    chunk
+      .toString('utf8')
+      .split('\n')
+      .filter((line) => NOISY_LEVELS.test(line))
+      .forEach((line) => options.onWarning?.(line.trim()));
+  };
+  child.stdout?.on('data', forward);
+  child.stderr?.on('data', forward);
+  child.on('exit', () => log.end());
   const url = new Promise<string>((resolve, reject) => {
     let settled = false;
     const finish = (fn: () => void) => {
@@ -54,5 +79,5 @@ export function startTunnel(port: number, options: TunnelOptions = {}): Tunnel {
     child.on('error', (error) => finish(() => reject(new Error(`Could not start ${binary}: ${error.message}`))));
     child.on('exit', (code) => finish(() => reject(new Error(`${binary} exited early (code ${code ?? 'unknown'})`))));
   });
-  return { child, url };
+  return { child, url, logPath };
 }

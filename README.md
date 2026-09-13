@@ -86,7 +86,9 @@ override any of them (see `sounds/README.md`). Reload the display page after add
 - **Public link shows a blank 404**: the launcher starts cloudflared with its own empty config, so
   a personal `~/.cloudflared/config.yml` (named tunnels with ingress rules) is ignored on purpose.
   If you run `cloudflared` by hand instead, add `--config /path/to/empty.yml`. The link usually
-  answers within about ten seconds of the banner appearing.
+  answers within about ten seconds of the banner appearing. If it still does not answer after a
+  couple of minutes, press Ctrl+C and run `npm run event` again to get a fresh hostname. Warnings
+  from cloudflared are printed in the launcher terminal and kept in a log whose path it prints.
 - **Buzzer says wrong code**: codes may have been re-issued. Send the new link.
 - **Host panel says "Wrong PIN"**: it must match `HOST_PIN` in `.env`.
 - **Start fresh**: stop the server and delete `data/feud.db` (this erases questions and answers).
