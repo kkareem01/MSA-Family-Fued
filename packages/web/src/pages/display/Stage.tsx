@@ -13,12 +13,16 @@ function useStageScale(): number {
   return scale;
 }
 
-/** Fixed 1920x1080 canvas scaled to fit any screen, so the layout is pixel-exact on the projector. */
+/**
+ * Fixed 1920x1080 canvas scaled to fit any screen, so the layout is pixel-exact on the projector.
+ * Centered with an explicit translate: grid/flex centering snaps an overflowing box to the top-left
+ * in a hidden-overflow container, which is exactly the case on any window smaller than 1920x1080.
+ */
 export function Stage({ children }: { children: ReactNode }) {
   const scale = useStageScale();
   return (
     <div className="stage-viewport">
-      <div className="stage" style={{ width: STAGE_WIDTH, height: STAGE_HEIGHT, transform: `scale(${scale})` }}>
+      <div className="stage" style={{ width: STAGE_WIDTH, height: STAGE_HEIGHT, transform: `translate(-50%, -50%) scale(${scale})` }}>
         {children}
       </div>
     </div>
