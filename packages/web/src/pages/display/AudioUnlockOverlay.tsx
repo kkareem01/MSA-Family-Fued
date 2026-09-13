@@ -21,6 +21,7 @@ export function AudioUnlockOverlay({ onUnlock }: Props) {
       <span className="unlock-title">{APP_NAME}</span>
       <span className="unlock-hint">Click anywhere to start the show</span>
       <span className="unlock-sub">Turns on sound and goes fullscreen</span>
+      <span className="unlock-sub">Keep this window on the projector and run the game from /host on your phone</span>
     </button>
   );
 }

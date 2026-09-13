@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { APP_NAME } from '@feud/shared';
 import { useHostSession } from '../../auth/HostPinContext';
 import { GameSocketProvider, useGameSocketContext } from '../../socket/GameSocketContext';
@@ -7,6 +6,8 @@ import { ConnectionBadge } from '../../components/ConnectionBadge';
 import { Toasts, useToasts } from '../../components/Toast';
 import { HostProvider, useHost } from './HostContext';
 import { PhaseGuide } from './PhaseGuide';
+import { RoundFlow } from './RoundFlow';
+import { HostNav } from './HostNav';
 import { Scoreboard } from './Scoreboard';
 import { HostControls } from './HostControls';
 import { UndoButton } from './UndoButton';
@@ -22,11 +23,9 @@ function HostHeader() {
     <header className="host-header">
       <div className="row row-between">
         <h1 className="display-title">{APP_NAME}</h1>
-        <div className="row">
-          <Link className="btn btn-ghost btn-inline" to="/host/questions">Questions</Link>
-          <button className="btn btn-ghost btn-inline" type="button" onClick={signOut}>Sign out</button>
-        </div>
+        <button className="btn btn-ghost btn-inline" type="button" onClick={signOut}>Sign out</button>
       </div>
+      <HostNav />
       <div className="row row-between">
         <ConnectionBadge connected={connected} error={connectError} />
         <span className="muted small">#{seq}</span>
@@ -42,6 +41,7 @@ function HostBody() {
   return (
     <>
       <PhaseGuide state={state} />
+      <RoundFlow phase={state.phase} />
       <Scoreboard state={state} />
       <HostControls state={state} />
       <SoundTest />

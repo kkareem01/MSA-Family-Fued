@@ -147,6 +147,11 @@ a {
   color: var(--ink);
   cursor: pointer;
   transition: transform 80ms ease, filter 120ms ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn:active {

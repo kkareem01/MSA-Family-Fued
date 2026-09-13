@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router-dom';
 import { PinGate } from './auth/PinGate';
 import { LandingPage } from './pages/LandingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { GuidePage } from './pages/guide/GuidePage';
+import { ChecksPage } from './pages/host/ChecksPage';
 import { DisplayPage } from './pages/display/DisplayPage';
 import { HostPage } from './pages/host/HostPage';
 import { QuestionsPage } from './pages/host/QuestionsPage';
@@ -19,6 +21,8 @@ export function AppRoutes() {
       <Route path="/host/questions" element={<PinGate><QuestionsPage /></PinGate>} />
       <Route path="/host/tally/:id" element={<PinGate><TallyPage /></PinGate>} />
       <Route path="/host/share" element={<PinGate><SharePage /></PinGate>} />
+      <Route path="/host/checks" element={<PinGate><ChecksPage /></PinGate>} />
+      <Route path="/guide" element={<GuidePage />} />
       <Route path="/survey" element={<SurveyPage />} />
       <Route path="/buzzer" element={<BuzzerPage />} />
       <Route path="*" element={<NotFoundPage />} />

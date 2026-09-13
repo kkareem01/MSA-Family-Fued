@@ -69,7 +69,7 @@ export function SurveyPage() {
       <header className="survey-header">
         <span className="survey-kicker">Help build the board</span>
         <h1 className="survey-title">{APP_NAME}</h1>
-        <p className="survey-sub">Answer with the first thing that comes to mind. One answer per question.</p>
+        <p className="survey-sub">Answer with the first thing that comes to mind. One answer per question. Keep this page open: questions open and close during the event.</p>
       </header>
 
       {open === null && !error ? <p className="survey-muted">Loading questions…</p> : null}

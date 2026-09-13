@@ -38,6 +38,11 @@ export function JoinForm({ onJoin, error }: Props) {
       />
       {error ? <p className="survey-error" role="alert">{error}</p> : null}
       <button type="submit" className="survey-submit" disabled={code.trim().length !== CODE_LEN}>Join</button>
+      <ul className="buzzer-how">
+        <li>The button lights up when the host starts a face-off.</li>
+        <li>Tap it when you know the answer. First tap wins.</li>
+        <li>Say your answer out loud; the host taps it in.</li>
+      </ul>
     </form>
   );
 }

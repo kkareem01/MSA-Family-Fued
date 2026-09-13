@@ -671,7 +671,7 @@
   gap: 60px;
   align-items: center;
   padding: 80px 100px;
-  background: radial-gradient(ellipse at 30% 40%, rgba(29, 71, 201, 0.98) 0%, rgba(6, 20, 67, 0.99) 70%);
+  background: radial-gradient(ellipse at 30% 40%, #1d47c9 0%, #061443 70%);
 }
 
 .spotlight-qr,

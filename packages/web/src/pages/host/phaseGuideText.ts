@@ -1,4 +1,16 @@
-import type { GameState, TeamId } from '@feud/shared';
+import type { GameState, Phase, TeamId } from '@feud/shared';
+
+export const PHASE_LABELS: Readonly<Record<Phase, string>> = {
+  idle: 'Between rounds',
+  round_intro: 'Round intro',
+  faceoff: 'Face-off',
+  faceoff_answering: 'Face-off answer',
+  play_or_pass: 'Play or pass',
+  in_play: 'In play',
+  steal: 'Steal',
+  round_over: 'Round over',
+  game_over: 'Game over',
+};
 
 function name(state: GameState, team: TeamId | null): string {
   return team ? state.teams[team].name : 'Nobody';

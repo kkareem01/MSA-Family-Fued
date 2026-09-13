@@ -91,6 +91,15 @@ export function TallyPage() {
         {view?.status === 'open' ? <p className="muted small">Survey is live. New answers appear automatically.</p> : null}
       </HostChrome>
 
+      <details className="panel">
+        <summary>How tallying works</summary>
+        <ul className="help-list">
+          <li>Answers are grouped by spelling automatically (“pizza”, “Pizzas” and “a pizza” count as one).</li>
+          <li>Merge a group into another when they mean the same thing. Hide junk answers so they do not count.</li>
+          <li>Points are each group’s share of the counted answers, out of 100. Override them if you want.</li>
+          <li>Finalize picks the top answers for the board and closes the survey. You can re-finalize later.</li>
+        </ul>
+      </details>
       {view === null ? <p className="muted">Loading…</p> : null}
       {view && view.groups.length === 0 ? <p className="muted">No answers yet.</p> : null}
       {view ? (
