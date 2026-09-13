@@ -9,7 +9,7 @@ import { INITIAL_FX, type DisplayFx } from './fx';
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(() => Promise.resolve('data:image/png;base64,QQ==')) } }));
 vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
 
-const meta: MetaPayload = { publicUrl: 'https://abc.trycloudflare.com', lanUrl: 'http://192.168.1.2:3000', surveyPath: '/survey', buzzerPath: '/buzzer' };
+const meta: MetaPayload = { publicUrl: 'https://abc.trycloudflare.com', lanUrl: 'http://192.168.1.2:3000', surveyPath: '/survey', buzzerPath: '/buzzer', spotlight: null };
 
 function scene(state: GameState, fx: Partial<DisplayFx> = {}, metaValue: MetaPayload | null = meta) {
   return render(<DisplayScene state={state} meta={metaValue} fx={{ ...INITIAL_FX, ...fx }} />);

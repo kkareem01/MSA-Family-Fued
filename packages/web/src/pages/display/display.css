@@ -660,3 +660,85 @@
   cursor: pointer;
   animation: pulse 1.6s ease-in-out infinite;
 }
+
+/* ---------- survey spotlight ---------- */
+.survey-spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 760px 1fr;
+  gap: 60px;
+  align-items: center;
+  padding: 80px 100px;
+  background: radial-gradient(ellipse at 30% 40%, rgba(29, 71, 201, 0.98) 0%, rgba(6, 20, 67, 0.99) 70%);
+}
+
+.spotlight-qr,
+.spotlight-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.spotlight-qr {
+  align-items: center;
+}
+
+.spotlight-kicker {
+  font-size: 56px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--feud-gold);
+}
+
+.spotlight-code {
+  background: #fff;
+  padding: 24px;
+  border-radius: 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.spotlight-url {
+  font-family: var(--font-body);
+  font-size: 40px;
+  font-weight: 700;
+  color: #fff;
+  word-break: break-all;
+  text-align: center;
+}
+
+.spotlight-questions ol {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: var(--font-body);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--feud-cream);
+}
+
+.spotlight-more,
+.spotlight-foot {
+  font-family: var(--font-body);
+  font-size: 30px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.idle-open {
+  font-family: var(--font-body);
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--feud-gold);
+  text-align: center;
+}
+
+.idle-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}

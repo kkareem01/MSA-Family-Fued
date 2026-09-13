@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { QuestionSummary } from '@feud/shared';
 import { createQuestion, deleteQuestion, listQuestions, setQuestionStatus } from '../../api/questions';
 import { describeError } from '../../api/client';
@@ -68,6 +69,7 @@ export function QuestionsPage() {
           Write questions here, open them so the audience can answer from the QR code, then tally the answers into a board.
           {openCount > 0 ? ` ${openCount} open right now.` : ''}
         </p>
+        <Link className="btn btn-gold btn-inline" to="/host/share">Share the survey QR</Link>
       </HostChrome>
       <QuestionForm busy={busy} onCreate={(prompt) => run(() => createQuestion(pin, prompt), 'Question added')} />
       {questions === null ? <p className="muted">Loading…</p> : null}

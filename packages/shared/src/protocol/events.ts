@@ -1,5 +1,6 @@
 import type { Cue, CueName, Phase, StateEnvelope, TeamId } from '../game/types';
 import type { GameAction } from '../game/actions';
+import type { Spotlight } from '../schemas/settings';
 
 export const SOCKET_PATH = '/socket.io';
 export const SURVEY_PATH = '/survey';
@@ -30,6 +31,8 @@ export type MetaPayload = Readonly<{
   lanUrl: string;
   surveyPath: string;
   buzzerPath: string;
+  /** What the projector should show on top of the game right now, if anything. */
+  spotlight: Spotlight;
 }>;
 
 /** Tiny payload for phones on flaky data. */

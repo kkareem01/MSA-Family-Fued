@@ -11,6 +11,7 @@ vi.mock('../../socket/createSocket', async () => {
 });
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(() => Promise.resolve('data:image/png;base64,QQ==')) } }));
 vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
+vi.mock('../../api/survey', () => ({ getOpenQuestions: vi.fn(() => Promise.resolve([{ id: 'q1', prompt: 'Name a fruit' }])), submitSurvey: vi.fn() }));
 
 const { DisplayPage } = await import('./DisplayPage');
 
@@ -83,6 +84,23 @@ describe('DisplayPage', () => {
     });
     expect(screen.queryByRole('button', { name: /Sound is/u })).not.toBeInTheDocument();
     expect(contexts).toHaveLength(1);
+  });
+
+  it('puts the survey spotlight over any phase when the host asks for it', async () => {
+    render(<DisplayPage />);
+    const socket = sockets[0]!;
+    const meta = { publicUrl: 'https://abc.trycloudflare.com', lanUrl: 'http://192.168.1.2:3000', surveyPath: '/survey', buzzerPath: '/buzzer', spotlight: 'survey' };
+    act(() => {
+      socket.serverEmit('connect');
+      socket.serverEmit('state', { seq: 1, state: stateInPhase('in_play'), canUndo: false });
+      socket.serverEmit('meta', meta);
+    });
+    const codes = await screen.findAllByAltText('QR code for https://abc.trycloudflare.com/survey');
+    expect(codes.some((img) => img.classList.contains('spotlight-code'))).toBe(true);
+    expect(screen.getByText(/Scan to answer/u)).toBeInTheDocument();
+    expect(screen.getByText('Name a fruit')).toBeInTheDocument();
+    act(() => socket.serverEmit('meta', { ...meta, spotlight: null }));
+    expect(screen.queryByText(/Scan to answer/u)).not.toBeInTheDocument();
   });
 
   it('reports connection problems', () => {

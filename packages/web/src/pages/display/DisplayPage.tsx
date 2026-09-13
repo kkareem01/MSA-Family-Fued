@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Cue } from '@feud/shared';
 import { GameSocketProvider, useGameSocketContext } from '../../socket/GameSocketContext';
 import { useSoundEngine } from '../../sound/useSoundEngine';
+import { useOpenQuestions } from '../../hooks/useOpenQuestions';
 import { Stage } from './Stage';
-import { DisplayScene } from './DisplayScene';
+import { DisplayScene, surveyUrlFrom } from './DisplayScene';
+import { SurveySpotlight } from './SurveySpotlight';
 import { AudioUnlockOverlay } from './AudioUnlockOverlay';
 import { SoundBadge } from './SoundBadge';
 import { useDisplayFx } from './useDisplayFx';
@@ -21,8 +23,14 @@ function ConnectingScreen({ error }: { error: string | null }) {
 
 function DisplayContent({ fx }: { fx: ReturnType<typeof useDisplayFx>['fx'] }) {
   const { envelope, meta, connectError } = useGameSocketContext();
+  const openQuestions = useOpenQuestions();
   if (!envelope) return <ConnectingScreen error={connectError} />;
-  return <DisplayScene state={envelope.state} meta={meta} fx={fx} />;
+  return (
+    <>
+      <DisplayScene state={envelope.state} meta={meta} fx={fx} openCount={openQuestions?.length ?? null} />
+      {meta?.spotlight === 'survey' ? <SurveySpotlight url={surveyUrlFrom(meta)} questions={openQuestions ?? []} /> : null}
+    </>
+  );
 }
 
 /** Tells the server whether this screen can make sound, on connect and whenever that changes. */

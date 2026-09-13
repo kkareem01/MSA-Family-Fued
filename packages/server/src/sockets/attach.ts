@@ -43,7 +43,7 @@ export function attachSockets(app: FastifyInstance, deps: AttachSocketsDeps): Fe
   });
 
   const unsubscribeGame = deps.gameService.subscribe((event) => broadcaster.broadcast(event));
-  const unsubscribeUrl = deps.settingsService.onPublicUrlChange(() => broadcaster.sendMetaToAll());
+  const unsubscribeUrl = deps.settingsService.onChange(() => broadcaster.sendMetaToAll());
   app.addHook('onClose', async () => {
     unsubscribeGame();
     unsubscribeUrl();

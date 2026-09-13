@@ -32,7 +32,7 @@ describe('useGameSocket', () => {
     const socket = sockets[0]!;
     act(() => socket.serverEmit('connect'));
     expect(result.current.connected).toBe(true);
-    act(() => socket.serverEmit('meta', { publicUrl: null, lanUrl: 'http://x', surveyPath: '/survey', buzzerPath: '/buzzer' }));
+    act(() => socket.serverEmit('meta', { publicUrl: null, lanUrl: 'http://x', surveyPath: '/survey', buzzerPath: '/buzzer', spotlight: null }));
     expect(result.current.meta?.lanUrl).toBe('http://x');
     act(() => socket.serverEmit('state', envelope(5, 'round_intro')));
     act(() => socket.serverEmit('state', envelope(3, 'faceoff')));

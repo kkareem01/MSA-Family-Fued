@@ -35,6 +35,7 @@ export function createBroadcaster(io: FeudServer, { gameService, settingsService
     lanUrl: settingsService.getLanUrl(),
     surveyPath: SURVEY_PATH,
     buzzerPath: BUZZER_PATH,
+    spotlight: settingsService.getSpotlight(),
   });
 
   return {

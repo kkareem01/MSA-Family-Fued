@@ -1,4 +1,5 @@
-import { selectPot, SURVEY_PATH, type GameState, type MetaPayload } from '@feud/shared';
+import { selectPot, type GameState, type MetaPayload } from '@feud/shared';
+import { surveyLinkFor } from '../../share/surveyLink';
 import type { DisplayFx } from './fx';
 import { QuestionBanner } from './QuestionBanner';
 import { Board } from './Board';
@@ -13,15 +14,15 @@ import { WinnerScreen } from './WinnerScreen';
 import { IdleScreen } from './IdleScreen';
 import { QrCorner } from './QrCorner';
 
-type Props = Readonly<{ state: GameState; meta: MetaPayload | null; fx: DisplayFx }>;
+type Props = Readonly<{ state: GameState; meta: MetaPayload | null; fx: DisplayFx; openCount?: number | null }>;
 
-function surveyUrlFrom(meta: MetaPayload | null): string | null {
-  return meta?.publicUrl ? `${meta.publicUrl}${meta.surveyPath}` : null;
+export function surveyUrlFrom(meta: MetaPayload | null): string | null {
+  return meta ? surveyLinkFor(meta.publicUrl, meta.lanUrl).url : null;
 }
 
-export function DisplayScene({ state, meta, fx }: Props) {
-  const surveyUrl = surveyUrlFrom(meta) ?? (meta ? `${meta.lanUrl}${SURVEY_PATH}` : null);
-  if (state.phase === 'idle') return <IdleScreen state={state} surveyUrl={surveyUrl} />;
+export function DisplayScene({ state, meta, fx, openCount = null }: Props) {
+  const surveyUrl = surveyUrlFrom(meta);
+  if (state.phase === 'idle') return <IdleScreen state={state} surveyUrl={surveyUrl} openCount={openCount} />;
   if (state.phase === 'game_over') return <WinnerScreen state={state} confettiKey={fx.confettiKey} />;
 
   const { round } = state;

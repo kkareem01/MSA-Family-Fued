@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { apiOk, publicUrlSchema } from '@feud/shared';
+import { apiOk, publicUrlSchema, spotlightSchema } from '@feud/shared';
 import type { RouteDeps } from './deps';
 
 export function registerSettingsRoutes(app: FastifyInstance, deps: RouteDeps): void {
@@ -11,6 +11,12 @@ export function registerSettingsRoutes(app: FastifyInstance, deps: RouteDeps): v
   app.put('/api/settings/public-url', opts, async (request) => {
     const { url } = publicUrlSchema.parse(request.body);
     settingsService.setPublicUrl(url);
+    return apiOk(settingsService.getPublicSettings());
+  });
+
+  app.put('/api/settings/spotlight', opts, async (request) => {
+    const { spotlight } = spotlightSchema.parse(request.body);
+    settingsService.setSpotlight(spotlight);
     return apiOk(settingsService.getPublicSettings());
   });
 

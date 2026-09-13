@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto';
-import type { BuzzerCodes, PublicSettings, TeamId } from '@feud/shared';
+import { spotlightValueSchema, type BuzzerCodes, type PublicSettings, type Spotlight, type TeamId } from '@feud/shared';
 import type { SettingsRepo } from '../repositories/settingsRepo';
 import type { ServerConfig } from '../config';
 import { normalizePublicUrl } from '../util/publicUrl';
@@ -7,6 +7,8 @@ import { lanIp } from '../util/lanIp';
 import { badRequest } from './errors';
 
 const KEY_PUBLIC_URL = 'public_url';
+const KEY_SPOTLIGHT = 'spotlight';
+const storedSpotlight = spotlightValueSchema.catch(null);
 const BUZZER_KEYS: Readonly<Record<TeamId, string>> = { A: 'buzzer_code_A', B: 'buzzer_code_B' };
 /** No I, O, 0 or 1 so codes read unambiguously on a projector. */
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -24,12 +26,14 @@ function generateDistinctCodes(): BuzzerCodes {
 }
 
 export type SettingsServiceDeps = Readonly<{ settings: SettingsRepo; config: ServerConfig; now: () => number }>;
-type UrlListener = (publicUrl: string | null) => void;
+type ChangeListener = () => void;
 
 export function createSettingsService({ settings, config, now }: SettingsServiceDeps) {
-  const listeners = new Set<UrlListener>();
+  const listeners = new Set<ChangeListener>();
+  const notifyChange = (): void => listeners.forEach((listener) => listener());
 
   const getPublicUrl = (): string | null => settings.get(KEY_PUBLIC_URL) ?? config.publicUrl;
+  const getSpotlight = (): Spotlight => storedSpotlight.parse(settings.get(KEY_SPOTLIGHT));
 
   const getBuzzerCodes = (): BuzzerCodes => {
     const stored = { A: settings.get(BUZZER_KEYS.A), B: settings.get(BUZZER_KEYS.B) };
@@ -42,12 +46,18 @@ export function createSettingsService({ settings, config, now }: SettingsService
 
   const getLanUrl = (): string => `http://${lanIp() ?? FALLBACK_HOST}:${config.port}`;
 
-  const getPublicSettings = (): PublicSettings => ({ publicUrl: getPublicUrl(), lanUrl: getLanUrl(), buzzerCodes: getBuzzerCodes() });
+  const getPublicSettings = (): PublicSettings => ({
+    publicUrl: getPublicUrl(),
+    lanUrl: getLanUrl(),
+    buzzerCodes: getBuzzerCodes(),
+    spotlight: getSpotlight(),
+  });
 
   return {
     getPublicUrl,
     getLanUrl,
     getBuzzerCodes,
+    getSpotlight,
     getPublicSettings,
     setPublicUrl(raw: string | null): string | null {
       const normalized = (() => {
@@ -59,9 +69,15 @@ export function createSettingsService({ settings, config, now }: SettingsService
       })();
       if (normalized === null) settings.remove(KEY_PUBLIC_URL);
       else settings.set(KEY_PUBLIC_URL, normalized, now());
-      const effective = getPublicUrl();
-      listeners.forEach((listener) => listener(effective));
-      return effective;
+      notifyChange();
+      return getPublicUrl();
+    },
+    /** Puts a full-screen takeover on (or off) the projector; every screen hears about it through meta. */
+    setSpotlight(value: Spotlight): Spotlight {
+      if (value === null) settings.remove(KEY_SPOTLIGHT);
+      else settings.set(KEY_SPOTLIGHT, value, now());
+      notifyChange();
+      return getSpotlight();
     },
     rotateBuzzerCodes(): BuzzerCodes {
       const fresh = generateDistinctCodes();
@@ -71,7 +87,8 @@ export function createSettingsService({ settings, config, now }: SettingsService
     },
     verifyBuzzerCode: (team: TeamId, code: unknown): boolean =>
       typeof code === 'string' && code.toUpperCase() === getBuzzerCodes()[team],
-    onPublicUrlChange(listener: UrlListener): () => void {
+    /** Fires after the public URL or the spotlight changes. */
+    onChange(listener: ChangeListener): () => void {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },

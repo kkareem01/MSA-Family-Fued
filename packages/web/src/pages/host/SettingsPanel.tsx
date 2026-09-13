@@ -1,17 +1,11 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { BUZZER_PATH, MAX_MAX_STRIKES, MIN_MAX_STRIKES, SURVEY_PATH, TEAM_IDS, type GameState, type PublicSettings } from '@feud/shared';
+import { Link } from 'react-router-dom';
+import { MAX_MAX_STRIKES, MIN_MAX_STRIKES, TEAM_IDS, type GameState, type PublicSettings } from '@feud/shared';
 import { getSettings, rotateBuzzerCodes, setPublicUrl } from '../../api/settings';
 import { describeError } from '../../api/client';
+import { buzzerLinkFor, surveyLinkFor } from '../../share/surveyLink';
+import { copyText } from './copyText';
 import { useHost } from './HostContext';
-
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 function parseMultipliers(text: string): number[] | null {
   const values = text.split(/[\s,]+/u).filter(Boolean).map(Number);
@@ -85,7 +79,7 @@ export function SettingsPanel({ state }: { state: GameState }) {
     }
   };
 
-  const base = settings?.publicUrl ?? settings?.lanUrl ?? '';
+  const survey = settings ? surveyLinkFor(settings.publicUrl, settings.lanUrl) : null;
   return (
     <details className="panel">
       <summary>Settings, links and buzzer codes</summary>
@@ -101,10 +95,11 @@ export function SettingsPanel({ state }: { state: GameState }) {
             <button className="btn btn-primary" type="submit">Save</button>
             {settings?.lanUrl ? <span className="muted small">Same-wifi fallback: {settings.lanUrl}</span> : null}
           </div>
-          {base ? (
+          {survey ? (
             <p className="small">
-              Survey link: <code>{base}{SURVEY_PATH}</code>{' '}
-              <button type="button" className="btn btn-ghost btn-inline" onClick={() => void copyText(`${base}${SURVEY_PATH}`).then((ok) => notify(ok ? 'Copied' : 'Copy failed'))}>Copy</button>
+              Survey link: <code>{survey.url}</code>{' '}
+              <button type="button" className="btn btn-ghost btn-inline" onClick={() => void copyText(survey.url).then((ok) => notify(ok ? 'Copied' : 'Copy failed'))}>Copy</button>{' '}
+              <Link className="btn btn-ghost btn-inline" to="/host/share">Show as QR</Link>
             </p>
           ) : null}
         </form>
@@ -114,7 +109,7 @@ export function SettingsPanel({ state }: { state: GameState }) {
           <p className="muted small">Send each face-off player their team link, or tell them the 4-letter code.</p>
           {settings
             ? TEAM_IDS.map((team) => {
-                const link = `${base}${BUZZER_PATH}?team=${team}&code=${settings.buzzerCodes[team]}`;
+                const link = buzzerLinkFor(settings.publicUrl, settings.lanUrl, team, settings.buzzerCodes[team]);
                 return (
                   <div key={team} className="buzzer-link">
                     <strong>{state.teams[team].name}</strong>

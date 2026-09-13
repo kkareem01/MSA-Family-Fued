@@ -21,7 +21,7 @@ const { getSettings, rotateBuzzerCodes, setPublicUrl } = await import('../../api
 const { HostPage } = await import('./HostPage');
 
 const question = { id: 'q1', prompt: 'Name a food', status: 'finalized' as const, sortOrder: 1, createdAt: 0, updatedAt: 0, openedAt: null, closedAt: null, finalizedAt: null, playedAt: null, responseCount: 9, hasBoard: true };
-const settings = { publicUrl: null, lanUrl: 'http://192.168.1.5:3000', buzzerCodes: { A: 'ABCD', B: 'EFGH' } };
+const settings = { publicUrl: null, lanUrl: 'http://192.168.1.5:3000', buzzerCodes: { A: 'ABCD', B: 'EFGH' }, spotlight: null };
 
 function renderHost(phase: Phase, overrides: Parameters<typeof stateInPhase>[1] = {}) {
   const signOut = vi.fn();
