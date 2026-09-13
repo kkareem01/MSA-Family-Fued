@@ -19,7 +19,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "e2e": "npm run build && playwright test",
-    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/server && tsc --noEmit -p packages/web && tsc --noEmit -p scripts"
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/server && tsc --noEmit -p packages/web && tsc --noEmit -p scripts && tsc --noEmit -p e2e"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
