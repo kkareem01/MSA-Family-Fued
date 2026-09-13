@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CUE_NAMES, type CueName } from '@feud/shared';
-import { createSoundEngine } from './SoundEngine';
-import { FakeAudioContext, FakeBufferSource } from './testing/fakeAudio';
+import { createSoundEngine, type SoundStatus } from './SoundEngine';
+import { FakeAudioContext, FakeBufferSource, FakeCompressor, FakeGain } from './testing/fakeAudio';
 import type { Synth } from './synth';
 
 function fetchWithFiles(present: readonly CueName[]) {
@@ -16,30 +16,107 @@ function fetchWithFiles(present: readonly CueName[]) {
 }
 
 function fakeSynths() {
-  return Object.fromEntries(CUE_NAMES.map((name) => [name, vi.fn()])) as Record<CueName, ReturnType<typeof vi.fn>> & Record<CueName, Synth>;
+  return Object.fromEntries(CUE_NAMES.map((name) => [name, vi.fn(() => ({ stop: vi.fn(), endsAt: 3 }))])) as Record<CueName, ReturnType<typeof vi.fn>> &
+    Record<CueName, Synth>;
 }
+
+function build(present: readonly CueName[] = [], ctx = new FakeAudioContext()) {
+  const synths = fakeSynths();
+  const fetchFn = fetchWithFiles(present);
+  const engine = createSoundEngine({ createContext: () => ctx as unknown as AudioContext, synths, fetchFn });
+  return { ctx, synths, engine, fetchFn };
+}
+
+const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe('createSoundEngine', () => {
   it('stays silent until unlocked, then resumes the context once', async () => {
-    const ctx = new FakeAudioContext();
-    const synths = fakeSynths();
-    const engine = createSoundEngine({ createContext: () => ctx as unknown as AudioContext, synths, fetchFn: fetchWithFiles([]) });
+    const { ctx, synths, engine } = build();
     engine.play({ name: 'reveal' });
     expect(synths.reveal).not.toHaveBeenCalled();
+    expect(engine.status()).toBe('off');
     expect(engine.isUnlocked()).toBe(false);
-    await engine.unlock();
-    await engine.unlock();
+    expect(await engine.unlock()).toBe(true);
+    expect(await engine.unlock()).toBe(true);
     expect(ctx.resumed).toBe(1);
-    expect(engine.isUnlocked()).toBe(true);
+    expect(engine.status()).toBe('on');
     engine.play({ name: 'reveal', rank: 2 });
-    expect(synths.reveal).toHaveBeenCalledWith(ctx, 0, { name: 'reveal', rank: 2 });
+    expect(synths.reveal).toHaveBeenCalledWith(expect.objectContaining({ ctx }), 0, { name: 'reveal', rank: 2 });
+  });
+
+  it('routes every sound through a master gain and compressor into the destination', async () => {
+    const { ctx, synths, engine } = build();
+    await engine.unlock();
+    const [gain] = ctx.sourcesOf(FakeGain);
+    const [compressor] = ctx.sourcesOf(FakeCompressor);
+    expect(gain?.connections).toEqual([compressor]);
+    expect(compressor?.connections).toEqual([ctx.destination]);
+    expect(gain?.gain.value).toBeGreaterThan(1);
+    engine.play({ name: 'buzz', team: 'A' });
+    expect(synths.buzz).toHaveBeenCalledWith({ ctx, out: gain }, 0, { name: 'buzz', team: 'A' });
+  });
+
+  it('reports a browser without Web Audio as off, without throwing', async () => {
+    const engine = createSoundEngine({
+      createContext: () => {
+        throw new Error('no audio');
+      },
+      synths: fakeSynths(),
+      fetchFn: fetchWithFiles([]),
+    });
+    expect(await engine.unlock()).toBe(false);
+    expect(engine.status()).toBe('off');
+    expect(() => engine.play({ name: 'reveal' })).not.toThrow();
+  });
+
+  it('stays locked when the browser refuses to resume', async () => {
+    const ctx = new FakeAudioContext();
+    ctx.resumable = false;
+    const { engine, synths } = build([], ctx);
+    expect(await engine.unlock()).toBe(false);
+    expect(engine.status()).toBe('locked');
+    engine.play({ name: 'reveal' });
+    await tick();
+    expect(synths.reveal).not.toHaveBeenCalled();
+  });
+
+  it('resumes a paused context on play once it has been unlocked before', async () => {
+    const { ctx, synths, engine } = build();
+    await engine.unlock();
+    ctx.setState('suspended');
+    expect(engine.status()).toBe('locked');
+    engine.play({ name: 'reveal' });
+    expect(synths.reveal).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(synths.reveal).toHaveBeenCalled());
+    expect(ctx.resumed).toBe(2);
+    expect(engine.status()).toBe('on');
+  });
+
+  it('drops the cue when resuming fails', async () => {
+    const { ctx, synths, engine } = build();
+    await engine.unlock();
+    ctx.setState('suspended');
+    ctx.resumeError = new Error('interrupted');
+    engine.play({ name: 'reveal' });
+    await tick();
+    expect(synths.reveal).not.toHaveBeenCalled();
+    expect(engine.status()).toBe('locked');
+  });
+
+  it('notifies subscribers only when the status actually changes', async () => {
+    const { ctx, engine } = build();
+    const seen: SoundStatus[] = [];
+    const unsubscribe = engine.subscribe((status) => seen.push(status));
+    await engine.unlock();
+    await engine.unlock();
+    ctx.setState('suspended');
+    unsubscribe();
+    ctx.setState('running');
+    expect(seen).toEqual(['locked', 'on', 'locked']);
   });
 
   it('prefers an mp3 override when the file exists', async () => {
-    const ctx = new FakeAudioContext();
-    const synths = fakeSynths();
-    const fetchFn = fetchWithFiles(['strike']);
-    const engine = createSoundEngine({ createContext: () => ctx as unknown as AudioContext, synths, fetchFn });
+    const { ctx, synths, engine, fetchFn } = build(['strike']);
     await engine.unlock();
     await engine.preload();
     expect(engine.hasOverride('strike')).toBe(true);
@@ -49,14 +126,14 @@ describe('createSoundEngine', () => {
     const sources = ctx.sourcesOf(FakeBufferSource);
     expect(sources).toHaveLength(1);
     expect(sources[0]?.loop).toBe(false);
+    expect(sources[0]?.connections).toEqual([ctx.sourcesOf(FakeGain)[0]]);
     engine.play({ name: 'reveal' });
     expect(synths.reveal).toHaveBeenCalled();
     expect(fetchFn.mock.calls.map(([url]) => url)).toEqual(['/api/sounds', '/sounds/strike.mp3']);
   });
 
   it('loops a theme file and toggles it off on the next play', async () => {
-    const ctx = new FakeAudioContext();
-    const engine = createSoundEngine({ createContext: () => ctx as unknown as AudioContext, synths: fakeSynths(), fetchFn: fetchWithFiles(['theme']) });
+    const { ctx, engine } = build(['theme']);
     await engine.unlock();
     await engine.preload();
     engine.play({ name: 'theme' });
@@ -68,15 +145,27 @@ describe('createSoundEngine', () => {
     engine.play({ name: 'theme' });
     expect(ctx.sourcesOf(FakeBufferSource)).toHaveLength(2);
     engine.stopTheme();
+    expect(ctx.sourcesOf(FakeBufferSource)[1]?.stopped).not.toBeNull();
   });
 
-  it('falls back to the synthesized theme when there is no file', async () => {
-    const ctx = new FakeAudioContext();
-    const synths = fakeSynths();
-    const engine = createSoundEngine({ createContext: () => ctx as unknown as AudioContext, synths, fetchFn: fetchWithFiles([]) });
+  it('toggles the synthesized theme instead of stacking it, and restarts once it has ended', async () => {
+    const { ctx, synths, engine } = build();
     await engine.unlock();
+    const stop = vi.fn();
+    synths.theme.mockReturnValue({ stop, endsAt: 4 });
     engine.play({ name: 'theme' });
-    expect(synths.theme).toHaveBeenCalled();
+    engine.play({ name: 'theme' });
+    expect(synths.theme).toHaveBeenCalledTimes(1);
+    expect(stop).toHaveBeenCalledTimes(1);
+    engine.play({ name: 'theme' });
+    expect(synths.theme).toHaveBeenCalledTimes(2);
+    ctx.currentTime = 10;
+    engine.play({ name: 'theme' });
+    expect(synths.theme).toHaveBeenCalledTimes(3);
+    expect(stop).toHaveBeenCalledTimes(1);
+    engine.stopTheme();
+    engine.stopTheme();
+    expect(stop).toHaveBeenCalledTimes(2);
   });
 
   it('treats fetch failures as no override', async () => {

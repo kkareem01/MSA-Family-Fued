@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Cue } from '@feud/shared';
 import { GameSocketProvider, useGameSocketContext } from '../../socket/GameSocketContext';
 import { useSoundEngine } from '../../sound/useSoundEngine';
 import { Stage } from './Stage';
 import { DisplayScene } from './DisplayScene';
 import { AudioUnlockOverlay } from './AudioUnlockOverlay';
+import { SoundBadge } from './SoundBadge';
 import { useDisplayFx } from './useDisplayFx';
 import './display.css';
 
@@ -24,25 +25,41 @@ function DisplayContent({ fx }: { fx: ReturnType<typeof useDisplayFx>['fx'] }) {
   return <DisplayScene state={envelope.state} meta={meta} fx={fx} />;
 }
 
+/** Any key press retries audio while the browser keeps it paused, so the host never needs the mouse. */
+function useKeyRetry(active: boolean, retry: () => void): void {
+  useEffect(() => {
+    if (!active) return undefined;
+    window.addEventListener('keydown', retry);
+    return () => window.removeEventListener('keydown', retry);
+  }, [active, retry]);
+}
+
 export function DisplayPage() {
   const [unlocked, setUnlocked] = useState(false);
   const { fx, onCue: onFxCue } = useDisplayFx();
-  const sound = useSoundEngine();
+  const { play, unlock, status } = useSoundEngine();
   const onCue = useCallback(
     (cue: Cue) => {
       onFxCue(cue);
-      sound.play(cue);
+      play(cue);
     },
-    [onFxCue, sound],
+    [onFxCue, play],
   );
   const handleUnlock = () => {
     setUnlocked(true);
-    void sound.unlock();
+    void unlock();
   };
+  const retry = useCallback(() => {
+    if (status !== 'on') void unlock();
+  }, [status, unlock]);
+  useKeyRetry(unlocked && status !== 'on', retry);
   return (
     <GameSocketProvider auth={{ role: 'display' }} onCue={onCue}>
       <Stage>
-        <DisplayContent fx={fx} />
+        <div className="stage-input" onClick={retry}>
+          <DisplayContent fx={fx} />
+          {unlocked ? <SoundBadge status={status} onRetry={retry} /> : null}
+        </div>
         {unlocked ? null : <AudioUnlockOverlay onUnlock={handleUnlock} />}
       </Stage>
     </GameSocketProvider>

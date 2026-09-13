@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { stateInPhase } from '@feud/shared/testing';
 import type { FakeSocket } from '../../socket/testing/fakeSocket';
+import { FakeAudioContext } from '../../sound/testing/fakeAudio';
 
 const { sockets } = vi.hoisted(() => ({ sockets: [] as FakeSocket[] }));
 vi.mock('../../socket/createSocket', async () => {
@@ -13,15 +14,21 @@ vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
 
 const { DisplayPage } = await import('./DisplayPage');
 
+const startButton = () => screen.getByRole('button', { name: /start the show/u });
+
 describe('DisplayPage', () => {
   beforeEach(() => sockets.splice(0));
+  afterEach(() => vi.unstubAllGlobals());
 
-  it('starts behind the click-to-start overlay and then mirrors the game', () => {
+  it('starts behind the click-to-start overlay and then mirrors the game', async () => {
     const { container } = render(<DisplayPage />);
     expect(screen.getByText('Click anywhere to start the show')).toBeInTheDocument();
     expect(screen.getByText('Connecting…')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /start the show/u }));
+    await act(async () => {
+      fireEvent.click(startButton());
+    });
     expect(screen.queryByText('Click anywhere to start the show')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sound is off/u })).toBeInTheDocument();
 
     const socket = sockets[0]!;
     act(() => {
@@ -31,6 +38,46 @@ describe('DisplayPage', () => {
     expect(screen.getByText('Get ready')).toBeInTheDocument();
     act(() => socket.serverEmit('cue', { name: 'strike', strikes: 2 }));
     expect(container.querySelectorAll('.strike-x')).toHaveLength(2);
+  });
+
+  it('hides the sound badge once the browser lets audio run', async () => {
+    vi.stubGlobal('AudioContext', FakeAudioContext);
+    render(<DisplayPage />);
+    await act(async () => {
+      fireEvent.click(startButton());
+    });
+    expect(screen.queryByRole('button', { name: /Sound is/u })).not.toBeInTheDocument();
+  });
+
+  it('keeps a badge while audio stays paused and retries from a click or a key', async () => {
+    const contexts: FakeAudioContext[] = [];
+    vi.stubGlobal(
+      'AudioContext',
+      class extends FakeAudioContext {
+        constructor() {
+          super();
+          this.resumable = false;
+          contexts.push(this);
+        }
+      },
+    );
+    render(<DisplayPage />);
+    await act(async () => {
+      fireEvent.click(startButton());
+    });
+    expect(contexts).toHaveLength(1);
+    expect(contexts[0]!.resumed).toBe(1);
+    const badge = screen.getByRole('button', { name: /Sound is paused/u });
+    await act(async () => {
+      fireEvent.keyDown(window, { key: ' ' });
+    });
+    expect(contexts[0]!.resumed).toBe(2);
+    contexts[0]!.resumable = true;
+    await act(async () => {
+      fireEvent.click(badge);
+    });
+    expect(screen.queryByRole('button', { name: /Sound is/u })).not.toBeInTheDocument();
+    expect(contexts).toHaveLength(1);
   });
 
   it('reports connection problems', () => {

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { APP_NAME } from '@feud/shared';
 import { useHostSession } from '../../auth/HostPinContext';
 import { GameSocketProvider, useGameSocketContext } from '../../socket/GameSocketContext';
+import { useSoundEngine } from '../../sound/useSoundEngine';
 import { ConnectionBadge } from '../../components/ConnectionBadge';
 import { Toasts, useToasts } from '../../components/Toast';
 import { HostProvider, useHost } from './HostContext';
@@ -51,8 +52,9 @@ function HostBody() {
 
 function HostShell() {
   const { toasts, notify } = useToasts();
+  const { playNow } = useSoundEngine();
   return (
-    <HostProvider notify={notify}>
+    <HostProvider notify={notify} playCue={playNow}>
       <main className="page page-narrow host-page stack stack-lg">
         <HostHeader />
         <HostBody />

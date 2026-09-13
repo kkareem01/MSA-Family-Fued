@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
-import { isActionAllowed, type GameAction, type GameActionType, type GameState } from '@feud/shared';
+import { isActionAllowed, type Cue, type GameAction, type GameActionType, type GameState } from '@feud/shared';
 import { useGameSocketContext } from '../../socket/GameSocketContext';
 import { useHostSession } from '../../auth/HostPinContext';
 import type { ToastTone } from '../../components/Toast';
@@ -14,13 +14,15 @@ export type HostValue = Readonly<{
   send: (action: GameAction) => Promise<boolean>;
   allowed: (type: GameActionType) => boolean;
   notify: (message: string, tone?: ToastTone) => void;
+  /** Plays a cue on this device (the host's phone or laptop); false when the browser refuses audio. */
+  playCue: (cue: Cue) => Promise<boolean>;
 }>;
 
 const HostContext = createContext<HostValue | null>(null);
 
-type ProviderProps = Readonly<{ notify: HostValue['notify']; children: ReactNode }>;
+type ProviderProps = Readonly<{ notify: HostValue['notify']; playCue: HostValue['playCue']; children: ReactNode }>;
 
-export function HostProvider({ notify, children }: ProviderProps) {
+export function HostProvider({ notify, playCue, children }: ProviderProps) {
   const { pin } = useHostSession();
   const { envelope, connected, sendAction } = useGameSocketContext();
   const state = envelope?.state ?? null;
@@ -40,8 +42,8 @@ export function HostProvider({ notify, children }: ProviderProps) {
   const allowed = useCallback((type: GameActionType) => (state ? isActionAllowed(state.phase, type) : false), [state]);
 
   const value = useMemo<HostValue>(
-    () => ({ pin, state, seq: envelope?.seq ?? 0, canUndo: envelope?.canUndo ?? false, connected, send, allowed, notify }),
-    [pin, state, envelope?.seq, envelope?.canUndo, connected, send, allowed, notify],
+    () => ({ pin, state, seq: envelope?.seq ?? 0, canUndo: envelope?.canUndo ?? false, connected, send, allowed, notify, playCue }),
+    [pin, state, envelope?.seq, envelope?.canUndo, connected, send, allowed, notify, playCue],
   );
   return <HostContext.Provider value={value}>{children}</HostContext.Provider>;
 }

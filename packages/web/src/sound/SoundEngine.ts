@@ -1,14 +1,21 @@
 import type { Cue, CueName } from '@feud/shared';
 import { fetchSoundManifest, loadOverride, type FetchLike } from './fileOverrides';
-import { SYNTHS, type Synth } from './synth';
+import { SYNTHS, type AudioBus, type Synth, type SynthHandle } from './synth';
+
+/** off: no audio context yet (or none available); locked: the browser is holding it; on: sound plays. */
+export type SoundStatus = 'off' | 'locked' | 'on';
+export type SoundListener = (status: SoundStatus) => void;
 
 export type SoundEngine = Readonly<{
-  /** Must be called from a user gesture; creates and resumes the audio context. */
-  unlock: () => Promise<void>;
+  /** Call from a user gesture. Creates and resumes the context; true when sound is on afterwards. Never throws. */
+  unlock: () => Promise<boolean>;
   /** Looks for mp3 overrides; safe to call before or after unlock. */
   preload: () => Promise<void>;
+  /** Plays a cue now, or as soon as a paused context resumes. Silent until the first unlock. */
   play: (cue: Cue) => void;
   stopTheme: () => void;
+  status: () => SoundStatus;
+  subscribe: (listener: SoundListener) => () => void;
   isUnlocked: () => boolean;
   hasOverride: (name: CueName) => boolean;
 }>;
@@ -21,88 +28,159 @@ export type SoundEngineDeps = Readonly<{
 
 type Overrides = Readonly<Partial<Record<CueName, AudioBuffer>>>;
 
+/** Makeup gain into a gentle compressor: loud enough for a projector speaker, no clipping when cues overlap. */
+const MASTER_GAIN = 1.4;
+const COMPRESSOR = { threshold: -18, knee: 12, ratio: 4, attack: 0.003, release: 0.25 } as const;
+
 function defaultContext(): AudioContext {
   const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctor) throw new Error('Web Audio is not supported in this browser');
   return new Ctor();
 }
 
+function createBus(ctx: AudioContext): AudioBus {
+  const gain = ctx.createGain();
+  const compressor = ctx.createDynamicsCompressor();
+  gain.gain.value = MASTER_GAIN;
+  compressor.threshold.value = COMPRESSOR.threshold;
+  compressor.knee.value = COMPRESSOR.knee;
+  compressor.ratio.value = COMPRESSOR.ratio;
+  compressor.attack.value = COMPRESSOR.attack;
+  compressor.release.value = COMPRESSOR.release;
+  gain.connect(compressor);
+  compressor.connect(ctx.destination);
+  return { ctx, out: gain };
+}
+
+function statusOf(bus: AudioBus | null): SoundStatus {
+  if (!bus) return 'off';
+  return bus.ctx.state === 'running' ? 'on' : 'locked';
+}
+
+function stopQuietly(node: AudioScheduledSourceNode): void {
+  try {
+    node.stop();
+  } catch {
+    /* already stopped */
+  }
+}
+
 /**
  * Plays cues through the Web Audio API: an mp3 from the sounds folder when one exists,
- * otherwise a synthesized fallback. The theme loops when it is a file and toggles on repeat plays.
+ * otherwise a synthesized fallback. Everything runs through one master bus. The theme toggles on repeat plays.
  */
 export function createSoundEngine({ createContext = defaultContext, fetchFn, synths = SYNTHS }: SoundEngineDeps = {}): SoundEngine {
-  let ctx: AudioContext | null = null;
+  let bus: AudioBus | null = null;
   let overrides: Overrides = {};
-  let theme: AudioBufferSourceNode | null = null;
+  let theme: SynthHandle | null = null;
+  let hadGesture = false;
+  let lastStatus: SoundStatus = 'off';
+  const listeners = new Set<SoundListener>();
 
-  const ensureContext = (): AudioContext => {
-    if (!ctx) ctx = createContext();
-    return ctx;
+  const notify = (): void => {
+    const next = statusOf(bus);
+    if (next === lastStatus) return;
+    lastStatus = next;
+    listeners.forEach((listener) => listener(next));
   };
 
-  const playBuffer = (buffer: AudioBuffer, loop: boolean): AudioBufferSourceNode => {
-    const context = ensureContext();
-    const source = context.createBufferSource();
+  const ensureBus = (): AudioBus => {
+    if (bus) return bus;
+    const ctx = createContext();
+    bus = createBus(ctx);
+    ctx.onstatechange = notify;
+    notify();
+    return bus;
+  };
+
+  const playBuffer = (b: AudioBus, buffer: AudioBuffer, loop: boolean): AudioBufferSourceNode => {
+    const source = b.ctx.createBufferSource();
     source.buffer = buffer;
     source.loop = loop;
-    source.connect(context.destination);
-    source.start(context.currentTime);
+    source.connect(b.out);
+    source.start(b.ctx.currentTime);
     return source;
   };
 
   const stopTheme = (): void => {
     if (!theme) return;
-    try {
-      theme.stop();
-    } catch {
-      /* already stopped */
-    }
+    const current = theme;
     theme = null;
+    current.stop();
   };
 
-  const playTheme = (): void => {
-    if (theme) {
+  const loopingTheme = (b: AudioBus, buffer: AudioBuffer): SynthHandle => {
+    const source = playBuffer(b, buffer, true);
+    return { endsAt: Number.POSITIVE_INFINITY, stop: () => stopQuietly(source) };
+  };
+
+  const playTheme = (b: AudioBus): void => {
+    if (theme && b.ctx.currentTime < theme.endsAt) {
       stopTheme();
       return;
     }
     const buffer = overrides.theme;
-    if (buffer) {
-      theme = playBuffer(buffer, true);
-      theme.onended = () => {
-        theme = null;
-      };
+    theme = buffer ? loopingTheme(b, buffer) : synths.theme(b, b.ctx.currentTime, { name: 'theme' });
+  };
+
+  const playNow = (b: AudioBus, cue: Cue): void => {
+    if (cue.name === 'theme') {
+      playTheme(b);
       return;
     }
-    synths.theme(ensureContext(), ensureContext().currentTime, { name: 'theme' });
+    const buffer = overrides[cue.name];
+    if (buffer) {
+      playBuffer(b, buffer, false);
+      return;
+    }
+    synths[cue.name](b, b.ctx.currentTime, cue);
+  };
+
+  const resumeThenPlay = (b: AudioBus, cue: Cue): void => {
+    b.ctx
+      .resume()
+      .then(() => {
+        if (b.ctx.state === 'running') playNow(b, cue);
+      })
+      .catch(() => undefined)
+      .finally(notify);
   };
 
   return {
     async unlock() {
-      const context = ensureContext();
-      if (context.state !== 'running') await context.resume();
+      try {
+        const b = ensureBus();
+        hadGesture = true;
+        if (b.ctx.state !== 'running') await b.ctx.resume();
+      } catch {
+        /* no Web Audio, or the browser refused; the status says so */
+      }
+      notify();
+      return statusOf(bus) === 'on';
     },
     async preload() {
-      const context = ensureContext();
+      const { ctx } = ensureBus();
       const available = await fetchSoundManifest(fetchFn);
-      const entries = await Promise.all(available.map(async (name) => [name, await loadOverride(context, name, fetchFn)] as const));
+      const entries = await Promise.all(available.map(async (name) => [name, await loadOverride(ctx, name, fetchFn)] as const));
       overrides = Object.fromEntries(entries.filter(([, buffer]) => buffer !== null)) as Overrides;
     },
     play(cue) {
-      if (!ctx || ctx.state !== 'running') return;
-      if (cue.name === 'theme') {
-        playTheme();
+      if (!bus) return;
+      if (bus.ctx.state === 'running') {
+        playNow(bus, cue);
         return;
       }
-      const buffer = overrides[cue.name];
-      if (buffer) {
-        playBuffer(buffer, false);
-        return;
-      }
-      synths[cue.name](ctx, ctx.currentTime, cue);
+      if (bus.ctx.state === 'suspended' && hadGesture) resumeThenPlay(bus, cue);
     },
     stopTheme,
-    isUnlocked: () => ctx !== null && ctx.state === 'running',
+    status: () => statusOf(bus),
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    isUnlocked: () => statusOf(bus) === 'on',
     hasOverride: (name) => overrides[name] !== undefined,
   };
 }
