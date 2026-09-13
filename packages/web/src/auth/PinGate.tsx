@@ -1,5 +1,5 @@
+import { Brand } from '../components/Brand';
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { APP_NAME } from '@feud/shared';
 import { useHostPin } from './useHostPin';
 import { HostPinContext } from './HostPinContext';
 
@@ -14,7 +14,7 @@ function PinForm({ onSubmit, error, busy }: PinFormProps) {
   return (
     <main className="page page-center">
       <form className="card stack" onSubmit={handleSubmit} aria-label="Host sign in">
-        <h1 className="display-title">{APP_NAME}</h1>
+        <h1 className="display-title"><Brand /></h1>
         <p className="muted">Enter the host PIN to open the control panel.</p>
         <label className="field">
           <span>Host PIN</span>

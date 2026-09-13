@@ -1,5 +1,6 @@
+import { Brand } from '../../components/Brand';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { APP_NAME, type OpenQuestion, type SurveySubmitResult } from '@feud/shared';
+import { type OpenQuestion, type SurveySubmitResult } from '@feud/shared';
 import { getOpenQuestions, submitSurvey } from '../../api/survey';
 import { describeError } from '../../api/client';
 import { SURVEY_POLL_INTERVAL_MS } from '../../config';
@@ -68,7 +69,7 @@ export function SurveyPage() {
     <main className="survey-page">
       <header className="survey-header">
         <span className="survey-kicker">Help build the board</span>
-        <h1 className="survey-title">{APP_NAME}</h1>
+        <h1 className="survey-title"><Brand /></h1>
         <p className="survey-sub">Answer with the first thing that comes to mind. One answer per question. Keep this page open: questions open and close during the event.</p>
       </header>
 

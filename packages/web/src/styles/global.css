@@ -143,7 +143,7 @@ a {
   min-height: var(--tap);
   border: 0;
   border-radius: var(--radius-sm);
-  background: #e6e9f2;
+  background: #e9e8e6;
   color: var(--ink);
   cursor: pointer;
   transition: transform 80ms ease, filter 120ms ease;
@@ -202,7 +202,7 @@ a {
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 600;
-  background: #eef0f6;
+  background: #eeedeb;
 }
 
 .badge-dot {
@@ -230,15 +230,15 @@ a {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  background: #eef0f6;
+  background: #eeedeb;
   color: var(--muted);
 }
 
 .pill-open { background: #e6f6ec; color: var(--ok); }
 .pill-closed { background: #fdf1e3; color: var(--warn); }
-.pill-finalized { background: #e7edff; color: var(--feud-blue); }
+.pill-finalized { background: #f9e8ec; color: var(--feud-blue); }
 .pill-played { background: #eee; color: #777; }
-.pill-draft { background: #eef0f6; color: var(--muted); }
+.pill-draft { background: #eeedeb; color: var(--muted); }
 
 .link-list {
   display: grid;
@@ -270,4 +270,39 @@ a {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* UGA MSA: shared identity and interaction surfaces. */
+.brand { display: inline-flex; align-items: center; gap: 14px; text-align: left; vertical-align: middle; }
+.brand-mascot { width: 64px; height: 64px; object-fit: contain; flex: 0 0 auto; }
+.brand-copy { display: flex; flex-direction: column; gap: 3px; }
+.brand-org { font: 700 11px/1.2 var(--font-body); letter-spacing: .2em; color: var(--uga-red); }
+.brand-event { font: 400 30px/1 var(--font-display); letter-spacing: .025em; color: var(--ink); }
+.brand-compact .brand-mascot { width: 46px; height: 46px; }
+.brand-compact .brand-event { font-size: 25px; }
+.brand-compact .brand-org { font-size: 10px; }
+.page { padding-top: 28px; }
+.page > header:not(.landing-topbar) { padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.page-center { background: radial-gradient(ellipse at top right, #501022, #18181b 65%); }
+.page-center .card { border-top: 5px solid var(--uga-red); padding: 32px; gap: 22px; }
+.page-center .display-title { margin-bottom: 8px; }
+.card, .panel { border: 1px solid var(--line); }
+.btn { background: #e9e8e6; }
+.btn-primary, .btn-danger { background: var(--uga-red); color: #fff; }
+.btn-gold { background: #202024; color: #fff; }
+.btn-ok { background: var(--ok); color: #fff; }
+.btn-ghost { background: transparent; }
+.btn:hover:not(:disabled) { filter: brightness(.92); }
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--uga-red); outline-offset: 4px; }
+.pill-finalized { background: #f9e8ec; color: var(--uga-red); }
+.field input, .field select, .field textarea, .input { color: var(--ink); }
+input[type='checkbox'], input[type='range'] { accent-color: var(--uga-red); }
+@media (max-width: 420px) {
+  .brand { gap: 10px; }
+  .brand-mascot { width: 48px; height: 48px; }
+  .brand-event { font-size: 25px; }
+}
+@media print {
+  body, .page { background: #fff !important; color: #000; }
+  .brand-mascot { width: 44px; height: 44px; }
 }

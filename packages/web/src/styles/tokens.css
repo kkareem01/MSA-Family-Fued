@@ -7,32 +7,38 @@
 }
 
 :root {
-  --feud-blue: #0d2a8c;
-  --feud-blue-deep: #061443;
-  --feud-blue-light: #1d47c9;
-  --feud-blue-glow: #2f63ff;
-  --feud-gold: #f6b400;
-  --feud-gold-dark: #b57c00;
-  --feud-gold-light: #ffd45c;
-  --feud-red: #e11d2b;
-  --feud-red-deep: #8f0c15;
-  --feud-white: #ffffff;
-  --feud-cream: #fff5cc;
+  --uga-red: #ba0c2f;
+  --uga-black: #000000;
+  --uga-charcoal: #18181b;
+  --uga-white: #ffffff;
 
-  --ink: #0b1220;
-  --paper: #f5f6fa;
+  /* Retain existing presentation token names for the existing components. */
+  --feud-blue: var(--uga-red);
+  --feud-blue-deep: #171719;
+  --feud-blue-light: #d1143c;
+  --feud-blue-glow: #ba0c2f;
+  --feud-gold: #ffffff;
+  --feud-gold-dark: #55555c;
+  --feud-gold-light: #f1f1f2;
+  --feud-red: var(--uga-red);
+  --feud-red-deep: #730b22;
+  --feud-white: #ffffff;
+  --feud-cream: #f5f5f5;
+
+  --ink: #202024;
+  --paper: #f2f1ef;
   --card: #ffffff;
-  --muted: #5b6475;
-  --line: #d9dee8;
-  --ok: #1f9d55;
-  --warn: #d97706;
-  --danger: #dc2626;
+  --muted: #606066;
+  --line: #dedddc;
+  --ok: #187341;
+  --warn: #935410;
+  --danger: #ba0c2f;
 
   --font-display: 'Bebas Neue', 'Impact', 'Arial Narrow Bold', 'Helvetica Neue', sans-serif;
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
 
-  --radius: 12px;
-  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-sm: 6px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   --shadow-soft: 0 4px 14px rgba(11, 18, 32, 0.12);
   --tap: 48px;

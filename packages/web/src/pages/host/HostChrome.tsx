@@ -1,6 +1,6 @@
+import { Brand } from '../../components/Brand';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { APP_NAME } from '@feud/shared';
 import { useHostSession } from '../../auth/HostPinContext';
 import { HostNav } from './HostNav';
 
@@ -12,7 +12,7 @@ export function HostChrome({ title, back, children }: Props) {
   return (
     <header className="host-header stack">
       <div className="row row-between">
-        <span className="display-title">{APP_NAME}</span>
+        <span className="display-title"><Brand /></span>
         <button className="btn btn-ghost btn-inline" type="button" onClick={signOut}>Sign out</button>
       </div>
       <HostNav />

@@ -18,7 +18,7 @@ function scene(state: GameState, fx: Partial<DisplayFx> = {}, metaValue: MetaPay
 describe('DisplayScene', () => {
   it('shows the title, scores and survey QR while idle', async () => {
     scene(stateInPhase('idle', { scores: { A: 12 } }));
-    expect(screen.getByText('MSA Family Feud')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'UGA MSA Family Feud' })).toBeInTheDocument();
     expect(screen.getByText(/Team A · 12/u)).toBeInTheDocument();
     expect(await screen.findByAltText(/abc\.trycloudflare\.com\/survey/u)).toBeInTheDocument();
   });

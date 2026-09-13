@@ -1,4 +1,5 @@
-import { APP_NAME, type GameState } from '@feud/shared';
+import { Brand } from '../../components/Brand';
+import { type GameState } from '@feud/shared';
 import { QrCorner } from './QrCorner';
 
 type Props = Readonly<{ state: GameState; surveyUrl: string | null; openCount?: number | null }>;
@@ -15,7 +16,9 @@ export function IdleScreen({ state, surveyUrl, openCount }: Props) {
     <div className="idle-screen">
       <div className="idle-title-block">
         <span className="idle-kicker">{played ? 'Next round coming up' : 'Welcome to'}</span>
-        <h1 className="idle-title">{APP_NAME}</h1>
+        <div className="idle-identity"><Brand /></div>
+        <h1 className="idle-title" aria-label="UGA MSA Family Feud">FAMILY<br /><span>FEUD.</span></h1>
+        <p className="idle-community">One community. Two teams. Game on.</p>
         <div className="idle-scores">
           <span>{state.teams.A.name} · {state.teams.A.score}</span>
           <span>{state.teams.B.name} · {state.teams.B.score}</span>

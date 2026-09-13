@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { APP_NAME } from '@feud/shared';
+import { Brand } from '../components/Brand';
+import './landing.css';
 import { START_HERE } from '../guide/guideContent';
 import './guide/guide.css';
 
@@ -15,13 +16,30 @@ const PAGES = [
 
 export function LandingPage() {
   return (
-    <main className="page page-narrow stack stack-lg">
-      <header className="stack">
-        <h1 className="display-title">{APP_NAME}</h1>
-        <p className="muted">Family Feud for the MSA: a projector board, a host panel on your phone, an audience survey, and phone buzzers.</p>
+    <main className="page landing-page stack stack-lg">
+      <header className="landing-topbar">
+        <Brand compact />
+        <span className="landing-location">UNIVERSITY OF GEORGIA · ATHENS, GA</span>
       </header>
+      <section className="landing-hero">
+        <div className="landing-hero-copy">
+          <p className="eyebrow">Muslim Students Association presents</p>
+          <h1>FAMILY <span>FEUD.</span></h1>
+          <p className="landing-intro">One community. Two teams.<br />A whole lot of friendly competition.</p>
+          <div className="row landing-actions">
+            <Link className="btn btn-primary btn-big" to="/host">Open host panel <span aria-hidden="true">↗</span></Link>
+            <Link className="btn btn-ghost btn-big" to="/display">Projector display <span aria-hidden="true">↗</span></Link>
+          </div>
+        </div>
+        <div className="landing-mascot" aria-hidden="true">
+          <span className="mascot-caption">GEORGIA</span>
+          <img src="/brand/bulldog.webp" alt="" width="250" height="250" />
+          <span className="mascot-foot">BULLDOGS GAME NIGHT</span>
+        </div>
+        <div className="hero-bottom"><span>UGA MSA</span><span>BRING YOUR PEOPLE. BRING YOUR GAME.</span><span>FAMILY FEUD</span></div>
+      </section>
       <section className="stack">
-        <h2>Start here</h2>
+        <div className="section-heading"><h2>Start here</h2><span className="muted small">Four steps to game time</span></div>
         <div className="start-here">
           {START_HERE.map((card, i) => (
             <article key={card.section} className="start-card">
@@ -39,7 +57,7 @@ export function LandingPage() {
         <Link className="btn btn-ghost" to="/guide">Full guide (setup, survey, testing, play, troubleshooting)</Link>
       </section>
       <section className="stack">
-        <h2>All pages</h2>
+        <div className="section-heading"><h2>All pages</h2><span className="muted small">Your game-night toolkit</span></div>
         <nav className="link-list" aria-label="Pages">
           {PAGES.map((link) => (
             <Link key={link.to} to={link.to}>
@@ -49,6 +67,7 @@ export function LandingPage() {
           ))}
         </nav>
       </section>
+      <footer className="landing-footer"><span>UGA MSA · Family Feud</span><span>Made for our community.</span></footer>
     </main>
   );
 }

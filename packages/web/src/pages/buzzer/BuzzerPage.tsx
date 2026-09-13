@@ -1,3 +1,4 @@
+import { Brand } from '../../components/Brand';
 import { useEffect, useState } from 'react';
 import { SOCKET_ERRORS } from '@feud/shared';
 import { useGameSocket } from '../../socket/useGameSocket';
@@ -54,6 +55,7 @@ export function BuzzerPage() {
   return (
     <main className={`survey-page buzzer-page status-${view.status}`}>
       <header className="buzzer-header">
+        <Brand compact />
         <span className="survey-kicker">{buzzerState?.teamName ?? `Team ${join.team}`}</span>
         <ConnectionBadge connected={connected} error={connectError} />
       </header>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 
-const QR_COLORS = { dark: '#061443', light: '#ffffff' } as const;
+const QR_COLORS = { dark: '#000000', light: '#ffffff' } as const;
 
 /** Encodes a url as a PNG data url; null while encoding, when there is no url, or when encoding fails. */
 export function useQrDataUrl(url: string | null, size: number): string | null {

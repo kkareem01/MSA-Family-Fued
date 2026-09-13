@@ -1,7 +1,7 @@
 .survey-page {
   min-height: 100vh;
   padding: 24px 16px 48px;
-  background: radial-gradient(ellipse 90% 50% at 50% 0%, #1d47c9 0%, #0d2a8c 45%, #061443 100%);
+  background: radial-gradient(ellipse 90% 50% at 50% 0%, #671027 0%, #30131c 45%, #151517 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -138,3 +138,23 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+.survey-page { background: #19191c; max-width: 600px; padding: 30px 24px 48px; border-top: 6px solid var(--uga-red); }
+body:has(.survey-page) { background: #19191c; }
+.survey-header { padding: 8px 0 24px; gap: 20px; }
+.survey-page .brand { justify-content: center; }
+.survey-page .brand-event { color: #fff; font-size: 38px; }
+.survey-page .brand-org { color: #d5c5ca; }
+.survey-title { text-shadow: none; }
+.survey-kicker { font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: .2em; color: #d5c5ca; }
+.survey-sub { line-height: 1.65; font-size: 14px; }
+.survey-card { border-radius: 10px; box-shadow: none; padding: 24px; }
+.survey-question { padding-bottom: 18px; gap: 12px; }
+.survey-question + .survey-question { padding-top: 18px; border-top: 1px solid var(--line); }
+.survey-prompt { line-height: 1.5; font-size: 16px; }
+.survey-input { border-width: 1px; background: #f8f7f5; }
+.survey-submit { background: var(--uga-red); color: #fff; box-shadow: 0 4px 0 #730b22; border-radius: 6px; }
+.survey-error { background: #6e1429; border: 1px solid #cb6f86; }
+.survey-page button:focus-visible, .survey-page a:focus-visible { outline-color: #fff; }
+.survey-card button:focus-visible { outline-color: var(--uga-red); }
+@media (max-width: 420px) { .survey-page { padding: 24px 16px 40px; } .survey-card { padding: 20px; } .survey-page .brand-event { font-size: 32px; } }

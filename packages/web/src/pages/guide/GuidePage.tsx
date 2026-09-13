@@ -1,5 +1,5 @@
+import { Brand } from '../../components/Brand';
 import { Link } from 'react-router-dom';
-import { APP_NAME } from '@feud/shared';
 import { GUIDE_SECTIONS, type GuideStep } from '../../guide/guideContent';
 import './guide.css';
 
@@ -21,7 +21,7 @@ export function GuidePage() {
   return (
     <main className="page page-narrow guide stack stack-lg">
       <header className="stack">
-        <span className="display-title">{APP_NAME}</span>
+        <span className="display-title"><Brand /></span>
         <h1>Host guide</h1>
         <p className="muted">Everything from first setup to the final confetti. Print it, or keep it open on a second phone.</p>
         <nav className="guide-toc" aria-label="Guide sections">

@@ -8,7 +8,7 @@
 }
 
 .buzzer-page.status-you {
-  background: radial-gradient(ellipse 90% 60% at 50% 0%, #ffd45c 0%, #f6b400 55%, #8a5f00 100%);
+  background: radial-gradient(ellipse 90% 60% at 50% 0%, #e7e7e9 0%, #d3d3d6 55%, #64646a 100%);
 }
 
 .buzzer-page.status-other {
@@ -155,3 +155,18 @@
   flex-direction: column;
   gap: 6px;
 }
+
+.buzzer-page { gap: 24px; }
+.buzzer-join { gap: 22px; }
+.buzzer-team { border-radius: 6px; border-width: 2px; }
+.buzzer-team.selected { background: #fff; border-color: #fff; color: #19191c; box-shadow: 0 4px 0 var(--uga-red); }
+.buzzer-how { color: #c7c5c7; line-height: 1.65; font-size: 13px; }
+.buzzer-header { gap: 18px; }
+.buzzer-header .survey-kicker { font-family: var(--font-display); }
+.buzz-button { border-radius: 16px; }
+.buzzer-page.status-open { background: #19191c; }
+.buzz-button.status-open { background: radial-gradient(circle at 50% 40%, #d71c44, #ba0c2f 55%, #730b22); border-color: #fff; }
+.buzzer-page.status-you { background: #303035; }
+.buzzer-page.status-other { background: #300e18; }
+.buzz-button.status-you { color: var(--uga-red); }
+.buzzer-leave { color: #d5d2d4; }

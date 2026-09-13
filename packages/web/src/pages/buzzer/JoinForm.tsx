@@ -1,5 +1,6 @@
+import { Brand } from '../../components/Brand';
 import { useState, type FormEvent } from 'react';
-import { APP_NAME, TEAM_IDS, type TeamId } from '@feud/shared';
+import { TEAM_IDS, type TeamId } from '@feud/shared';
 import type { BuzzerJoin } from './useBuzzerJoin';
 
 type Props = Readonly<{ onJoin: (join: BuzzerJoin) => void; error: string | null }>;
@@ -16,7 +17,7 @@ export function JoinForm({ onJoin, error }: Props) {
   return (
     <form className="buzzer-join" onSubmit={submit}>
       <span className="survey-kicker">Buzzer</span>
-      <h1 className="survey-title">{APP_NAME}</h1>
+      <h1 className="survey-title"><Brand /></h1>
       <p className="survey-sub">Ask the host for your team's 4-letter code.</p>
       <div className="buzzer-team-pick" role="radiogroup" aria-label="Team">
         {TEAM_IDS.map((id) => (

@@ -14,7 +14,7 @@ import './display.css';
 function ConnectingScreen({ error }: { error: string | null }) {
   return (
     <div className="connecting-screen">
-      <span className="overlay-kicker">MSA Family Feud</span>
+      <span className="overlay-kicker">UGA MSA Family Feud</span>
       <span className="overlay-title">{error ? 'Connection problem' : 'Connecting…'}</span>
       {error ? <span className="overlay-sub">{error}</span> : null}
     </div>

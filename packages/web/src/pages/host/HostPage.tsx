@@ -1,4 +1,4 @@
-import { APP_NAME } from '@feud/shared';
+import { Brand } from '../../components/Brand';
 import { useHostSession } from '../../auth/HostPinContext';
 import { GameSocketProvider, useGameSocketContext } from '../../socket/GameSocketContext';
 import { useSoundEngine } from '../../sound/useSoundEngine';
@@ -22,7 +22,7 @@ function HostHeader() {
   return (
     <header className="host-header">
       <div className="row row-between">
-        <h1 className="display-title">{APP_NAME}</h1>
+        <h1 className="display-title"><Brand /></h1>
         <button className="btn btn-ghost btn-inline" type="button" onClick={signOut}>Sign out</button>
       </div>
       <HostNav />
