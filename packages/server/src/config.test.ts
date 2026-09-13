@@ -39,4 +39,17 @@ describe('loadConfig', () => {
   it('treats a blank PUBLIC_URL as unset', () => {
     expect(loadConfig({ HOST_PIN: 'abcd', PUBLIC_URL: '' }, '/repo').publicUrl).toBeNull();
   });
+
+  it('accepts a bare hosting domain for PUBLIC_URL by assuming https', () => {
+    expect(loadConfig({ HOST_PIN: 'abcd', PUBLIC_URL: 'msa-feud.up.railway.app' }, '/repo').publicUrl).toBe('https://msa-feud.up.railway.app');
+    expect(loadConfig({ HOST_PIN: 'abcd', PUBLIC_URL: ' msa-feud.up.railway.app/ ' }, '/repo').publicUrl).toBe('https://msa-feud.up.railway.app');
+  });
+
+  it('starts without a public URL instead of crashing on an unusable one', () => {
+    const warnings: string[] = [];
+    const config = loadConfig({ HOST_PIN: 'abcd', PUBLIC_URL: 'not a url at all' }, '/repo', (message) => warnings.push(message));
+    expect(config.publicUrl).toBeNull();
+    expect(warnings[0]).toMatch(/PUBLIC_URL/u);
+    expect(loadConfig({ HOST_PIN: 'abcd', PUBLIC_URL: 'ftp://x.example' }, '/repo', () => undefined).publicUrl).toBeNull();
+  });
 });
