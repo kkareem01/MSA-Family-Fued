@@ -18,8 +18,9 @@ ENV NODE_ENV=production \
     DB_PATH=/data/feud.db \
     TRUST_PROXY=true
 
-# Mount a persistent volume at /data so questions, answers and game state survive redeploys.
-VOLUME ["/data"]
+# Attach a persistent volume at /data in your hosting platform (Railway: Settings → Volumes;
+# Fly: fly.toml mounts) so questions, answers and game state survive redeploys. Railway rejects
+# a Dockerfile VOLUME line, so the mount is declared there, not here.
 EXPOSE 3000
 
 CMD ["npm", "start"]
