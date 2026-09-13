@@ -3,6 +3,8 @@ type Listener = (...args: unknown[]) => void;
 /** Minimal stand-in for a socket.io-client socket: records emits and lets tests inject server events. */
 export class FakeSocket {
   connected = false;
+  /** When set, host:action emits are acknowledged immediately with this value. */
+  autoAck: unknown = { ok: true, seq: 1, changed: true };
   readonly emitted: { event: string; args: unknown[] }[] = [];
   private readonly listeners = new Map<string, Set<Listener>>();
   private readonly anyListeners = new Set<(event: string, ...args: unknown[]) => void>();
@@ -27,7 +29,13 @@ export class FakeSocket {
 
   emit(event: string, ...args: unknown[]): this {
     this.emitted.push({ event, args });
+    const ack = args[args.length - 1];
+    if (event === 'host:action' && this.autoAck !== null && typeof ack === 'function') (ack as (r: unknown) => void)(this.autoAck);
     return this;
+  }
+
+  actions(): unknown[] {
+    return this.emitted.filter((e) => e.event === 'host:action').map((e) => (e.args[0] as { action: unknown }).action);
   }
 
   connect(): this {

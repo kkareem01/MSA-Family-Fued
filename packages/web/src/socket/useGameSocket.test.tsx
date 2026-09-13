@@ -65,6 +65,7 @@ describe('useGameSocket', () => {
   it('sends actions and resolves with the ack', async () => {
     const { result } = renderHook(() => useGameSocket({ role: 'host', pin: 'good' }));
     const socket = sockets[0]!;
+    socket.autoAck = null;
     const pending = result.current.sendAction({ type: 'STRIKE' });
     const call = socket.lastEmitted('host:action')!;
     expect(call.args[0]).toEqual({ action: { type: 'STRIKE' } });

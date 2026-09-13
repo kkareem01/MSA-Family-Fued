@@ -1,4 +1,4 @@
-import { TEAM_IDS, MIN_MULTIPLIER, MAX_MULTIPLIER, type GameState } from '@feud/shared';
+import { MIN_MULTIPLIER, MAX_MULTIPLIER, type GameState } from '@feud/shared';
 import { useHost } from './HostContext';
 import { QuestionPicker } from './QuestionPicker';
 import { BoardPreview } from './BoardPreview';
@@ -46,7 +46,6 @@ export function HostControls({ state }: { state: GameState }) {
   const { phase, round } = state;
   const board = round.board;
   const showBoard = board !== null && phase !== 'idle' && phase !== 'game_over';
-  const showControlOverride = phase === 'in_play' || phase === 'steal';
 
   return (
     <div className="stack stack-lg">
@@ -58,16 +57,6 @@ export function HostControls({ state }: { state: GameState }) {
       <StrikeButton phase={phase} />
       {showBoard && board ? (
         <BoardPreview board={board} phase={phase} canReveal={allowed('REVEAL_ANSWER')} onReveal={(rank) => void send({ type: 'REVEAL_ANSWER', rank })} />
-      ) : null}
-      {showControlOverride ? (
-        <div className="row">
-          <span className="muted small">Fix control:</span>
-          {TEAM_IDS.filter((team) => team !== round.controlTeam).map((team) => (
-            <button key={team} type="button" className="btn btn-ghost btn-step" disabled={!allowed('SET_CONTROL')} onClick={() => void send({ type: 'SET_CONTROL', team })}>
-              {state.teams[team].name}
-            </button>
-          ))}
-        </div>
       ) : null}
       {phase === 'round_intro' ? <QuestionPicker title="Swap the question" /> : null}
       <RoundControls state={state} />
