@@ -77,6 +77,17 @@ describe('useGameSocket', () => {
     expect(socket.lastEmitted('buzzer:buzz')).toBeTruthy();
   });
 
+  it('keeps the latest presence and reports the display sound status', () => {
+    const { result } = renderHook(() => useGameSocket({ role: 'display' }));
+    const socket = sockets[0]!;
+    expect(result.current.presence).toBeNull();
+    const presence = { displays: 1, displaysWithSound: 0, hosts: 2, buzzers: { A: 1, B: 0 } };
+    act(() => socket.serverEmit('presence', presence));
+    expect(result.current.presence).toEqual(presence);
+    result.current.sendDisplayStatus(true);
+    expect(socket.lastEmitted('display:status')?.args[0]).toEqual({ audioUnlocked: true });
+  });
+
   it('keeps buzzer state and disconnects on unmount', () => {
     const { result, unmount } = renderHook(() => useGameSocket({ role: 'buzzer', team: 'A', code: 'ABCD' }));
     const socket = sockets[0]!;

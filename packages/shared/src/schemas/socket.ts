@@ -13,3 +13,4 @@ export const socketAuthSchema = z.discriminatedUnion('role', [
 
 export const hostActionPayloadSchema = z.object({ action: gameActionSchema });
 export const hostCuePayloadSchema = z.object({ name: z.enum(CUE_NAMES) });
+export const displayStatusPayloadSchema = z.object({ audioUnlocked: z.boolean() });

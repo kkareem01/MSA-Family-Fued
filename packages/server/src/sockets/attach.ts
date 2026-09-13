@@ -6,6 +6,7 @@ import type { GameService } from '../services/gameService';
 import type { SettingsService } from '../services/settingsService';
 import { createAuthMiddleware } from './authMiddleware';
 import { createBroadcaster } from './broadcaster';
+import { createPresence } from './presence';
 import { handleDisplayConnection } from './displayHandlers';
 import { handleHostConnection } from './hostHandlers';
 import { handleBuzzerConnection } from './buzzerHandlers';
@@ -22,15 +23,23 @@ export type AttachSocketsDeps = Readonly<{
 export function attachSockets(app: FastifyInstance, deps: AttachSocketsDeps): FeudServer {
   const io: FeudServer = new Server(app.server, { path: SOCKET_PATH, serveClient: false });
   const broadcaster = createBroadcaster(io, deps);
+  const presence = createPresence(io);
   const hostDeps = { io, gameService: deps.gameService, broadcaster };
+  const displayDeps = { broadcaster, presence };
   const buzzerDeps = { gameService: deps.gameService, broadcaster, now: deps.now };
+
+  const route = (socket: FeudSocket): void => {
+    const identity = socket.data;
+    if (identity.role === 'display') return handleDisplayConnection(socket, displayDeps);
+    if (identity.role === 'host') return handleHostConnection(socket, hostDeps);
+    return handleBuzzerConnection(socket, identity.team, buzzerDeps);
+  };
 
   io.use(createAuthMiddleware(deps));
   io.on('connection', (socket: FeudSocket) => {
-    const identity = socket.data;
-    if (identity.role === 'display') return handleDisplayConnection(socket, broadcaster);
-    if (identity.role === 'host') return handleHostConnection(socket, hostDeps);
-    return handleBuzzerConnection(socket, identity.team, buzzerDeps);
+    route(socket);
+    presence.publish();
+    socket.on('disconnect', () => presence.publish());
   });
 
   const unsubscribeGame = deps.gameService.subscribe((event) => broadcaster.broadcast(event));

@@ -38,15 +38,20 @@ describe('DisplayPage', () => {
     expect(screen.getByText('Get ready')).toBeInTheDocument();
     act(() => socket.serverEmit('cue', { name: 'strike', strikes: 2 }));
     expect(container.querySelectorAll('.strike-x')).toHaveLength(2);
+    expect(socket.lastEmitted('display:status')?.args[0]).toEqual({ audioUnlocked: false });
   });
 
-  it('hides the sound badge once the browser lets audio run', async () => {
+  it('hides the sound badge once the browser lets audio run, and tells the server', async () => {
     vi.stubGlobal('AudioContext', FakeAudioContext);
     render(<DisplayPage />);
+    const socket = sockets[0]!;
+    act(() => socket.serverEmit('connect'));
+    expect(socket.lastEmitted('display:status')?.args[0]).toEqual({ audioUnlocked: false });
     await act(async () => {
       fireEvent.click(startButton());
     });
     expect(screen.queryByRole('button', { name: /Sound is/u })).not.toBeInTheDocument();
+    expect(socket.lastEmitted('display:status')?.args[0]).toEqual({ audioUnlocked: true });
   });
 
   it('keeps a badge while audio stays paused and retries from a click or a key', async () => {

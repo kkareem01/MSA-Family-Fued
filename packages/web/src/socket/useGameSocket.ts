@@ -6,6 +6,7 @@ import type {
   GameAction,
   HostActionAck,
   MetaPayload,
+  PresencePayload,
   SocketAuth,
   StateEnvelope,
 } from '@feud/shared';
@@ -17,6 +18,7 @@ export type GameSocketHandlers = Readonly<{ onCue?: (cue: Cue) => void }>;
 type Snapshot = Readonly<{
   envelope: StateEnvelope | null;
   meta: MetaPayload | null;
+  presence: PresencePayload | null;
   buzzerState: BuzzerStatePayload | null;
   connected: boolean;
   connectError: string | null;
@@ -27,9 +29,11 @@ export type GameSocketValue = Snapshot &
     sendAction: (action: GameAction) => Promise<HostActionAck>;
     sendCue: (name: CueName) => void;
     buzz: () => void;
+    /** Displays only: tells the server whether audio is running on this screen. */
+    sendDisplayStatus: (audioUnlocked: boolean) => void;
   }>;
 
-const INITIAL: Snapshot = { envelope: null, meta: null, buzzerState: null, connected: false, connectError: null };
+const INITIAL: Snapshot = { envelope: null, meta: null, presence: null, buzzerState: null, connected: false, connectError: null };
 
 function bindListeners(socket: FeudClientSocket, set: (update: (s: Snapshot) => Snapshot) => void, handlers: React.RefObject<GameSocketHandlers>) {
   let lastSeq = -1;
@@ -38,6 +42,7 @@ function bindListeners(socket: FeudClientSocket, set: (update: (s: Snapshot) => 
   socket.on('disconnect', () => set((s) => ({ ...s, connected: false })));
   socket.on('connect_error', (error) => set((s) => ({ ...s, connected: false, connectError: error.message })));
   socket.on('meta', (meta) => set((s) => ({ ...s, meta })));
+  socket.on('presence', (presence) => set((s) => ({ ...s, presence })));
   socket.on('state', (envelope) => {
     if (envelope.seq <= lastSeq) return;
     lastSeq = envelope.seq;
@@ -103,5 +108,9 @@ export function useGameSocket(auth: SocketAuth | null, handlers: GameSocketHandl
     socketRef.current?.emit('buzzer:buzz');
   }, []);
 
-  return { ...snapshot, sendAction, sendCue, buzz };
+  const sendDisplayStatus = useCallback((audioUnlocked: boolean) => {
+    socketRef.current?.emit('display:status', { audioUnlocked });
+  }, []);
+
+  return { ...snapshot, sendAction, sendCue, buzz, sendDisplayStatus };
 }

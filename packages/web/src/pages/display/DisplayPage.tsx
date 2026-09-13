@@ -25,6 +25,15 @@ function DisplayContent({ fx }: { fx: ReturnType<typeof useDisplayFx>['fx'] }) {
   return <DisplayScene state={envelope.state} meta={meta} fx={fx} />;
 }
 
+/** Tells the server whether this screen can make sound, on connect and whenever that changes. */
+function SoundReporter({ on }: { on: boolean }) {
+  const { connected, sendDisplayStatus } = useGameSocketContext();
+  useEffect(() => {
+    if (connected) sendDisplayStatus(on);
+  }, [connected, on, sendDisplayStatus]);
+  return null;
+}
+
 /** Any key press retries audio while the browser keeps it paused, so the host never needs the mouse. */
 function useKeyRetry(active: boolean, retry: () => void): void {
   useEffect(() => {
@@ -55,6 +64,7 @@ export function DisplayPage() {
   useKeyRetry(unlocked && status !== 'on', retry);
   return (
     <GameSocketProvider auth={{ role: 'display' }} onCue={onCue}>
+      <SoundReporter on={status === 'on'} />
       <Stage>
         <div className="stage-input" onClick={retry}>
           <DisplayContent fx={fx} />

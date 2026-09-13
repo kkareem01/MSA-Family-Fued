@@ -1,6 +1,7 @@
 import { CUE_NAMES, type CueName } from '@feud/shared';
 import { useGameSocketContext } from '../../socket/GameSocketContext';
 import { useHost } from './HostContext';
+import { projectorSoundHint } from './soundHints';
 
 const LABELS: Record<CueName, string> = {
   reveal: 'Ding',
@@ -14,7 +15,7 @@ const LABELS: Record<CueName, string> = {
 
 /** Plays a cue on this device and on the projector without touching the game. */
 export function SoundTest() {
-  const { sendCue } = useGameSocketContext();
+  const { sendCue, presence } = useGameSocketContext();
   const { playCue } = useHost();
   const test = (name: CueName) => {
     void playCue({ name });
@@ -24,6 +25,7 @@ export function SoundTest() {
     <details className="panel">
       <summary>Sound test</summary>
       <p className="muted small">Plays on this device and on the projector. Tap Theme again to stop it.</p>
+      <p className="small" role="status">{projectorSoundHint(presence)}</p>
       <div className="button-grid compact">
         {CUE_NAMES.map((name) => (
           <button key={name} type="button" className="btn" onClick={() => test(name)}>

@@ -1,9 +1,20 @@
-import { SOCKET_ERRORS, socketAuthSchema } from '@feud/shared';
+import { SOCKET_ERRORS, socketAuthSchema, type SocketAuth, type SocketIdentity } from '@feud/shared';
 import type { Auth } from '../services/auth';
 import type { SettingsService } from '../services/settingsService';
 import type { FeudSocket } from './types';
 
 export type AuthMiddlewareDeps = Readonly<{ auth: Auth; settingsService: SettingsService }>;
+
+function identityFor(auth: SocketAuth): SocketIdentity {
+  switch (auth.role) {
+    case 'buzzer':
+      return { role: 'buzzer', team: auth.team };
+    case 'display':
+      return { role: 'display', audioUnlocked: false };
+    default:
+      return { role: 'host' };
+  }
+}
 
 /** Validates the handshake and stamps the socket with its role (and team for buzzers). */
 export function createAuthMiddleware({ auth, settingsService }: AuthMiddlewareDeps) {
@@ -15,7 +26,7 @@ export function createAuthMiddleware({ auth, settingsService }: AuthMiddlewareDe
     if (identity.role === 'buzzer' && !settingsService.verifyBuzzerCode(identity.team, identity.code)) {
       return next(new Error(SOCKET_ERRORS.badCode));
     }
-    socket.data = identity.role === 'buzzer' ? { role: 'buzzer', team: identity.team } : { role: identity.role };
+    socket.data = identityFor(identity);
     return next();
   };
 }
