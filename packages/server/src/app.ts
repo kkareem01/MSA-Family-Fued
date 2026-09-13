@@ -8,6 +8,7 @@ import { createBoardAnswerRepo } from './repositories/boardAnswerRepo';
 import { createGameStateRepo } from './repositories/gameStateRepo';
 import { createSettingsRepo } from './repositories/settingsRepo';
 import { createBackupRepo } from './repositories/backupRepo';
+import { createRestoreService } from './services/restoreService';
 import { describeStorage, type StorageInfo } from './db/storage';
 import { createAuth } from './services/auth';
 import { createQuestionService } from './services/questionService';
@@ -32,7 +33,7 @@ export type BuildAppOptions = Readonly<{
   storage?: StorageInfo;
 }>;
 
-export type BuiltApp = Readonly<{ app: FastifyInstance; io: FeudServer; services: Omit<RouteDeps, 'requireHost' | 'rateLimits' | 'backup' | 'responses' | 'storage'> }>;
+export type BuiltApp = Readonly<{ app: FastifyInstance; io: FeudServer; services: Omit<RouteDeps, 'requireHost' | 'rateLimits' | 'backup' | 'responses' | 'storage' | 'restoreService'> }>;
 
 /** Wires repositories, services, plugins, routes and Socket.IO onto one Fastify instance. */
 export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, now = Date.now, storage = describeStorage(config.dbPath) }: BuildAppOptions): Promise<BuiltApp> {
@@ -54,7 +55,8 @@ export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, n
   registerErrorHandler(app, { spaFallback });
   await registerRateLimit(app, rateLimits);
   const services = { auth, questionService, surveyService, tallyService, settingsService, gameService };
-  registerRoutes(app, { ...services, requireHost: createHostGuard(auth), rateLimits, backup: createBackupRepo(db), responses, storage }, config);
+  const restoreService = createRestoreService({ db, questions, responses, tally: tallyService, now });
+  registerRoutes(app, { ...services, requireHost: createHostGuard(auth), rateLimits, backup: createBackupRepo(db), responses, storage, restoreService }, config);
   const io = attachSockets(app, { auth, gameService, settingsService, now });
 
   return { app, io, services };

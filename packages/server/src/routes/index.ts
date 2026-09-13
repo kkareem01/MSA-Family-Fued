@@ -9,6 +9,7 @@ import { registerSettingsRoutes } from './settings';
 import { registerGameRoutes } from './game';
 import { registerSoundRoutes } from './sounds';
 import { registerBackupRoutes } from './backup';
+import { registerRestoreRoutes } from './restore';
 import type { ServerConfig } from '../config';
 
 export function registerRoutes(app: FastifyInstance, deps: RouteDeps, config: ServerConfig): void {
@@ -21,4 +22,5 @@ export function registerRoutes(app: FastifyInstance, deps: RouteDeps, config: Se
   registerGameRoutes(app, deps);
   registerSoundRoutes(app, config);
   registerBackupRoutes(app, deps);
+  registerRestoreRoutes(app, deps);
 }

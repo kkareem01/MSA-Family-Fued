@@ -19,6 +19,7 @@ export * from './schemas/question';
 export * from './schemas/survey';
 export * from './schemas/tally';
 export * from './schemas/settings';
+export * from './schemas/backup';
 export * from './schemas/auth';
 export * from './schemas/api';
 export * from './protocol/rooms';

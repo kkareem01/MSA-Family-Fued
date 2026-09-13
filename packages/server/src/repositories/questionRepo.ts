@@ -71,6 +71,12 @@ export function createQuestionRepo(db: Database) {
       insertStmt.run(id, input.prompt, 'draft', next, now, now);
       return toRow(getStmt.get(id) as RawRow);
     },
+    /** Recreates a question from a backup with its original id and status. */
+    insertExisting(input: Readonly<{ id: string; prompt: string; status: QuestionStatus; sortOrder?: number }>, now: number = Date.now()): QuestionRow {
+      const { next } = nextOrderStmt.get() as { next: number };
+      insertStmt.run(input.id, input.prompt, input.status, input.sortOrder ?? next, now, now);
+      return toRow(getStmt.get(input.id) as RawRow);
+    },
     update(id: string, patch: QuestionPatch, now: number = Date.now()): QuestionRow | null {
       const current = get(id);
       if (!current) return null;
