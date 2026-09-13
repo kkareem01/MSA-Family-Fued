@@ -8,6 +8,7 @@ import { registerTallyRoutes } from './tally';
 import { registerSettingsRoutes } from './settings';
 import { registerGameRoutes } from './game';
 import { registerSoundRoutes } from './sounds';
+import { registerBackupRoutes } from './backup';
 import type { ServerConfig } from '../config';
 
 export function registerRoutes(app: FastifyInstance, deps: RouteDeps, config: ServerConfig): void {
@@ -19,4 +20,5 @@ export function registerRoutes(app: FastifyInstance, deps: RouteDeps, config: Se
   registerSettingsRoutes(app, deps);
   registerGameRoutes(app, deps);
   registerSoundRoutes(app, config);
+  registerBackupRoutes(app, deps);
 }

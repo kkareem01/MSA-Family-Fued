@@ -22,3 +22,8 @@ export type PublicSettings = Readonly<{
   buzzerCodes: BuzzerCodes;
   spotlight: Spotlight;
 }>;
+
+export const STORAGE_KINDS = ['memory', 'volume', 'local', 'ephemeral'] as const;
+export type StorageKind = (typeof STORAGE_KINDS)[number];
+export type StorageInfo = Readonly<{ path: string; kind: StorageKind }>;
+export type HealthInfo = Readonly<{ ok: true; uptime: number; seq: number; phase: string; storage: StorageInfo; responseCount: number }>;

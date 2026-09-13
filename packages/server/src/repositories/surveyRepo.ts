@@ -31,6 +31,7 @@ export function createSurveyRepo(db: Database) {
     VALUES (?, ?, ?, ?, ?, ?, ?)`);
   const listStmt = db.prepare('SELECT * FROM survey_responses WHERE question_id = ? ORDER BY created_at, rowid');
   const countStmt = db.prepare('SELECT COUNT(*) AS count FROM survey_responses WHERE question_id = ?');
+  const countAllStmt = db.prepare('SELECT COUNT(*) AS count FROM survey_responses');
 
   return {
     /** One answer per submitter token per question; a repeat is reported, not stored. */
@@ -48,6 +49,7 @@ export function createSurveyRepo(db: Database) {
     },
     listByQuestion: (questionId: string): SurveyResponse[] => (listStmt.all(questionId) as RawRow[]).map(toResponse),
     countByQuestion: (questionId: string): number => Number((countStmt.get(questionId) as { count: number }).count),
+    countAll: (): number => Number((countAllStmt.get() as { count: number }).count),
   };
 }
 

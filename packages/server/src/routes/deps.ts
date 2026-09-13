@@ -6,6 +6,9 @@ import type { SettingsService } from '../services/settingsService';
 import type { GameService } from '../services/gameService';
 import type { RateLimits } from '../plugins/rateLimit';
 import type { HostGuard } from '../plugins/hostAuth';
+import type { BackupRepo } from '../repositories/backupRepo';
+import type { SurveyRepo } from '../repositories/surveyRepo';
+import type { StorageInfo } from '../db/storage';
 
 export type RouteDeps = Readonly<{
   auth: Auth;
@@ -16,4 +19,7 @@ export type RouteDeps = Readonly<{
   settingsService: SettingsService;
   gameService: GameService;
   rateLimits: RateLimits;
+  backup: BackupRepo;
+  responses: SurveyRepo;
+  storage: StorageInfo;
 }>;

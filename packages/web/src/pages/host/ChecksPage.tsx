@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { TEAM_IDS, type PublicSettings, type QuestionSummary } from '@feud/shared';
+import { TEAM_IDS, type HealthInfo, type PublicSettings, type QuestionSummary } from '@feud/shared';
+import { downloadBackup } from '../../api/backup';
+import { getHealth } from '../../api/health';
 import { listQuestions } from '../../api/questions';
 import { getSettings } from '../../api/settings';
 import { describeError } from '../../api/client';
@@ -62,16 +64,26 @@ function ChecksBody() {
   const { playNow } = useSoundEngine();
   const [questions, setQuestions] = useState<readonly QuestionSummary[] | null>(null);
   const [settings, setSettings] = useState<PublicSettings | null>(null);
+  const [health, setHealth] = useState<HealthInfo | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      const [qs, st] = await Promise.all([listQuestions(pin), getSettings(pin)]);
+      const [qs, st, hp] = await Promise.all([listQuestions(pin), getSettings(pin), getHealth()]);
       setQuestions(qs);
       setSettings(st);
+      setHealth(hp);
     } catch (error) {
       notify(describeError(error), 'error');
     }
   }, [pin, notify]);
+
+  const backup = async () => {
+    try {
+      notify(`Saved ${await downloadBackup(pin)}`, 'ok');
+    } catch (error) {
+      notify(describeError(error), 'error');
+    }
+  };
 
   useEffect(() => {
     void refresh();
@@ -84,8 +96,14 @@ function ChecksBody() {
     sendCue('reveal');
   };
 
-  const checks = buildChecks({ connected, presence, meta, questions });
+  const checks = buildChecks({ connected, presence, meta, questions, health });
   const extras: Partial<Record<CheckItem['id'], React.ReactNode>> = {
+    storage: (
+      <div className="stack">
+        <button type="button" className="btn btn-inline" onClick={() => void backup()}>⬇ Download backup</button>
+        <span className="muted small">Saves every question, answer and board as a file on this device. Do it whenever the count goes up.</span>
+      </div>
+    ),
     sound: <button type="button" className="btn btn-inline" onClick={testDing}>🔊 Play test ding</button>,
     buzzerA: <BuzzerLinks settings={settings} notify={notify} />,
   };

@@ -71,6 +71,21 @@ fly secrets set HOST_PIN=your-pin PUBLIC_URL=https://<app>.fly.dev
 fly deploy
 ```
 
+### Keeping the answers safe
+
+- **Attach the volume before collecting answers.** Without a volume the database lives on the
+  container's temporary disk and every deploy or restart wipes it. Host → **Checks** shows a red
+  "Answers are saved permanently" row when that is the case, and the server logs
+  `NO PERSISTENT VOLUME` at start.
+- **Download a backup** from Host → Checks whenever the answer count goes up, and once more right
+  before the event. It saves every question, answer, tally decision and board as a JSON file on
+  your device (`GET /api/backup` with the host PIN does the same).
+- Every write is flushed to disk before the phone gets its "sent" reply, so a hard stop cannot
+  lose an accepted answer.
+- **Do not let the Railway plan lapse.** A trial that runs out or an unpaid bill stops the service.
+  Add a payment method or upgrade to the Hobby plan before the event.
+- Deleting a question deletes its answers too; the delete button asks first.
+
 ### On the day
 
 - Open `https://<your-domain>/display` on the projector laptop and click once. Open `/host` on your

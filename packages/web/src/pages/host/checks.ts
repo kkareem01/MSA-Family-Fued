@@ -1,6 +1,6 @@
-import type { MetaPayload, PresencePayload, QuestionSummary, TeamId } from '@feud/shared';
+import type { HealthInfo, MetaPayload, PresencePayload, QuestionSummary, TeamId } from '@feud/shared';
 
-export type CheckId = 'host' | 'display' | 'sound' | 'link' | 'buzzerA' | 'buzzerB' | 'boards' | 'surveys';
+export type CheckId = 'storage' | 'host' | 'display' | 'sound' | 'link' | 'buzzerA' | 'buzzerB' | 'boards' | 'surveys';
 export type CheckFix = Readonly<{ to: string; label: string; external?: boolean }>;
 export type CheckItem = Readonly<{ id: CheckId; label: string; ok: boolean; detail: string; fix?: CheckFix }>;
 export type CheckInput = Readonly<{
@@ -8,9 +8,25 @@ export type CheckInput = Readonly<{
   presence: PresencePayload | null;
   meta: MetaPayload | null;
   questions: readonly QuestionSummary[] | null;
+  health: HealthInfo | null;
 }>;
 
 const OPEN_DISPLAY: CheckFix = { to: '/display', label: 'Open the projector', external: true };
+
+const STORAGE_DETAIL: Record<HealthInfo['storage']['kind'], string> = {
+  volume: 'Saved on a persistent volume. Restarts and redeploys keep everything.',
+  local: 'Saved in a file on the server machine. Restarts keep everything.',
+  ephemeral: 'NO VOLUME ATTACHED. Every answer will be wiped on the next restart or deploy. In Railway: Settings → Volumes → mount path /data.',
+  memory: 'In-memory database: nothing is saved. This should only happen in tests.',
+};
+
+function storageCheck({ health }: CheckInput): CheckItem {
+  const label = 'Answers are saved permanently';
+  if (!health) return { id: 'storage', label, ok: false, detail: 'Waiting for the server.' };
+  const ok = health.storage.kind === 'volume' || health.storage.kind === 'local';
+  const count = `${health.responseCount} answer${health.responseCount === 1 ? '' : 's'} stored so far. `;
+  return { id: 'storage', label, ok, detail: count + STORAGE_DETAIL[health.storage.kind] };
+}
 
 function hostCheck({ connected }: CheckInput): CheckItem {
   return connected
@@ -67,7 +83,7 @@ function surveysCheck({ questions }: CheckInput): CheckItem {
 
 /** Pure: turns what the socket and the API report into pass/fail rows with a fix for each. */
 export function buildChecks(input: CheckInput): readonly CheckItem[] {
-  return [hostCheck(input), displayCheck(input), soundCheck(input), linkCheck(input), buzzerCheck('A', input), buzzerCheck('B', input), boardsCheck(input), surveysCheck(input)];
+  return [storageCheck(input), hostCheck(input), displayCheck(input), soundCheck(input), linkCheck(input), buzzerCheck('A', input), buzzerCheck('B', input), boardsCheck(input), surveysCheck(input)];
 }
 
 export function checkSummary(checks: readonly CheckItem[]): string {

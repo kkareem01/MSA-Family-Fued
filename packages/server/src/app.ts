@@ -7,6 +7,8 @@ import { createTallyDecisionRepo } from './repositories/tallyDecisionRepo';
 import { createBoardAnswerRepo } from './repositories/boardAnswerRepo';
 import { createGameStateRepo } from './repositories/gameStateRepo';
 import { createSettingsRepo } from './repositories/settingsRepo';
+import { createBackupRepo } from './repositories/backupRepo';
+import { describeStorage, type StorageInfo } from './db/storage';
 import { createAuth } from './services/auth';
 import { createQuestionService } from './services/questionService';
 import { createSurveyService } from './services/surveyService';
@@ -27,12 +29,13 @@ export type BuildAppOptions = Readonly<{
   db: Database;
   rateLimits?: RateLimits;
   now?: () => number;
+  storage?: StorageInfo;
 }>;
 
-export type BuiltApp = Readonly<{ app: FastifyInstance; io: FeudServer; services: Omit<RouteDeps, 'requireHost' | 'rateLimits'> }>;
+export type BuiltApp = Readonly<{ app: FastifyInstance; io: FeudServer; services: Omit<RouteDeps, 'requireHost' | 'rateLimits' | 'backup' | 'responses' | 'storage'> }>;
 
 /** Wires repositories, services, plugins, routes and Socket.IO onto one Fastify instance. */
-export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, now = Date.now }: BuildAppOptions): Promise<BuiltApp> {
+export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, now = Date.now, storage = describeStorage(config.dbPath) }: BuildAppOptions): Promise<BuiltApp> {
   const app = Fastify({ logger: config.logLevel === 'silent' ? false : { level: config.logLevel }, trustProxy: config.trustProxy });
 
   const questions = createQuestionRepo(db);
@@ -51,7 +54,7 @@ export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, n
   registerErrorHandler(app, { spaFallback });
   await registerRateLimit(app, rateLimits);
   const services = { auth, questionService, surveyService, tallyService, settingsService, gameService };
-  registerRoutes(app, { ...services, requireHost: createHostGuard(auth), rateLimits }, config);
+  registerRoutes(app, { ...services, requireHost: createHostGuard(auth), rateLimits, backup: createBackupRepo(db), responses, storage }, config);
   const io = attachSockets(app, { auth, gameService, settingsService, now });
 
   return { app, io, services };
