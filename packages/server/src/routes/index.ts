@@ -7,8 +7,10 @@ import { registerSurveyRoutes } from './survey';
 import { registerTallyRoutes } from './tally';
 import { registerSettingsRoutes } from './settings';
 import { registerGameRoutes } from './game';
+import { registerSoundRoutes } from './sounds';
+import type { ServerConfig } from '../config';
 
-export function registerRoutes(app: FastifyInstance, deps: RouteDeps): void {
+export function registerRoutes(app: FastifyInstance, deps: RouteDeps, config: ServerConfig): void {
   registerHealthRoutes(app, deps);
   registerAuthRoutes(app, deps);
   registerQuestionRoutes(app, deps);
@@ -16,4 +18,5 @@ export function registerRoutes(app: FastifyInstance, deps: RouteDeps): void {
   registerTallyRoutes(app, deps);
   registerSettingsRoutes(app, deps);
   registerGameRoutes(app, deps);
+  registerSoundRoutes(app, config);
 }

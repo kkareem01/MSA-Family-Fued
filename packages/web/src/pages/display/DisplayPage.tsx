@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import type { Cue } from '@feud/shared';
 import { GameSocketProvider, useGameSocketContext } from '../../socket/GameSocketContext';
+import { useSoundEngine } from '../../sound/useSoundEngine';
 import { Stage } from './Stage';
 import { DisplayScene } from './DisplayScene';
 import { AudioUnlockOverlay } from './AudioUnlockOverlay';
@@ -24,12 +26,24 @@ function DisplayContent({ fx }: { fx: ReturnType<typeof useDisplayFx>['fx'] }) {
 
 export function DisplayPage() {
   const [unlocked, setUnlocked] = useState(false);
-  const { fx, onCue } = useDisplayFx();
+  const { fx, onCue: onFxCue } = useDisplayFx();
+  const sound = useSoundEngine();
+  const onCue = useCallback(
+    (cue: Cue) => {
+      onFxCue(cue);
+      sound.play(cue);
+    },
+    [onFxCue, sound],
+  );
+  const handleUnlock = () => {
+    setUnlocked(true);
+    void sound.unlock();
+  };
   return (
     <GameSocketProvider auth={{ role: 'display' }} onCue={onCue}>
       <Stage>
         <DisplayContent fx={fx} />
-        {unlocked ? null : <AudioUnlockOverlay onUnlock={() => setUnlocked(true)} />}
+        {unlocked ? null : <AudioUnlockOverlay onUnlock={handleUnlock} />}
       </Stage>
     </GameSocketProvider>
   );

@@ -51,7 +51,7 @@ export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, n
   registerErrorHandler(app, { spaFallback });
   await registerRateLimit(app, rateLimits);
   const services = { auth, questionService, surveyService, tallyService, settingsService, gameService };
-  registerRoutes(app, { ...services, requireHost: createHostGuard(auth), rateLimits });
+  registerRoutes(app, { ...services, requireHost: createHostGuard(auth), rateLimits }, config);
   const io = attachSockets(app, { auth, gameService, settingsService, now });
 
   return { app, io, services };

@@ -56,12 +56,19 @@ describe('static site and sounds', () => {
     expect(missing.statusCode).toBe(404);
   });
 
+  it('lists which sound overrides exist', async () => {
+    const res = await built.app.inject({ method: 'GET', url: '/api/sounds' });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data).toEqual({ overrides: ['reveal'] });
+  });
+
   it('runs without a built bundle', async () => {
     const bare = await buildApp({ config: testConfig(), db: createTestDb() });
     await bare.app.ready();
     const res = await bare.app.inject({ method: 'GET', url: '/display' });
     expect(res.statusCode).toBe(404);
     expect(res.json().error.code).toBe('not_found');
+    expect((await bare.app.inject({ method: 'GET', url: '/api/sounds' })).json().data).toEqual({ overrides: [] });
     await bare.app.close();
   });
 });
