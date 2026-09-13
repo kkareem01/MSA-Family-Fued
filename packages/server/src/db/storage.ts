@@ -15,11 +15,17 @@ export type StorageProbe = Readonly<{
 
 const MOUNT_VARS = ['RAILWAY_VOLUME_MOUNT_PATH', 'FLY_VOLUME_MOUNT_PATH'] as const;
 const DOCKER_MARKER = '/.dockerenv';
+/** Hosting platforms that run the image without leaving the Docker marker behind. */
+const PLATFORM_VARS = ['RAILWAY_ENVIRONMENT', 'RAILWAY_PROJECT_ID', 'FLY_APP_NAME', 'KUBERNETES_SERVICE_HOST', 'RENDER'] as const;
+
+export function inHostedContainer(env: Readonly<Record<string, string | undefined>>, dockerMarker = DOCKER_MARKER): boolean {
+  return existsSync(dockerMarker) || PLATFORM_VARS.some((name) => typeof env[name] === 'string' && env[name] !== '');
+}
 
 export const defaultProbe: StorageProbe = {
   env: process.env,
   deviceOf: (path) => Number(statSync(path).dev),
-  inContainer: () => existsSync(DOCKER_MARKER),
+  inContainer: () => inHostedContainer(process.env),
 };
 
 function onDeclaredMount(dir: string, env: StorageProbe['env']): boolean {

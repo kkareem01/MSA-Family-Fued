@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeStorage } from './storage';
+import { describeStorage, inHostedContainer } from './storage';
 
 const probe = (over: Partial<Parameters<typeof describeStorage>[1]> = {}) => ({
   env: {},
@@ -31,5 +31,13 @@ describe('describeStorage', () => {
   it('never throws when the filesystem cannot be inspected', () => {
     const info = describeStorage('/data/feud.db', probe({ deviceOf: () => { throw new Error('nope'); }, inContainer: () => true }));
     expect(info.kind).toBe('ephemeral');
+  });
+});
+
+describe('inHostedContainer', () => {
+  it('recognizes hosting platforms by their environment, not only the Docker marker', () => {
+    expect(inHostedContainer({ RAILWAY_ENVIRONMENT: 'production' }, '/nonexistent-marker')).toBe(true);
+    expect(inHostedContainer({ FLY_APP_NAME: 'feud' }, '/nonexistent-marker')).toBe(true);
+    expect(inHostedContainer({}, '/nonexistent-marker')).toBe(false);
   });
 });
