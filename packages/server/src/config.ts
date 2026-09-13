@@ -16,6 +16,8 @@ const envSchema = z.object({
   PUBLIC_URL: z.string().default(''),
   LOG_LEVEL: z.enum(LOG_LEVELS).default('info'),
   NODE_ENV: z.enum(NODE_ENVS).default('development'),
+  /** Set true when a hosting platform's proxy sits in front, so client IPs come from x-forwarded-for. */
+  TRUST_PROXY: z.enum(['true', 'false']).default('false'),
 });
 
 export type ServerConfig = Readonly<{
@@ -27,6 +29,7 @@ export type ServerConfig = Readonly<{
   publicUrl: string | null;
   logLevel: (typeof LOG_LEVELS)[number];
   nodeEnv: (typeof NODE_ENVS)[number];
+  trustProxy: boolean;
   repoRoot: string;
 }>;
 
@@ -53,6 +56,7 @@ export function loadConfig(env: Readonly<Record<string, string | undefined>>, re
     publicUrl: normalizePublicUrl(e.PUBLIC_URL),
     logLevel: e.LOG_LEVEL,
     nodeEnv: e.NODE_ENV,
+    trustProxy: e.TRUST_PROXY === 'true',
     repoRoot,
   };
 }

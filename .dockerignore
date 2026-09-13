@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+**/dist
+coverage
+data
+.env
+e2e/.tmp
+playwright-report
+test-results
+.git
+.DS_Store

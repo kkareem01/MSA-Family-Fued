@@ -12,11 +12,12 @@ describe('loadConfig', () => {
     expect(config.publicUrl).toBeNull();
     expect(config.logLevel).toBe('info');
     expect(config.nodeEnv).toBe('development');
+    expect(config.trustProxy).toBe(false);
   });
 
   it('reads overrides and resolves relative paths against the repo root', () => {
     const config = loadConfig(
-      { HOST_PIN: 'abcd', PORT: '4100', DB_PATH: ':memory:', SOUNDS_DIR: '/abs/sounds', PUBLIC_URL: 'https://x.trycloudflare.com/', LOG_LEVEL: 'warn', NODE_ENV: 'production' },
+      { HOST_PIN: 'abcd', PORT: '4100', DB_PATH: ':memory:', SOUNDS_DIR: '/abs/sounds', PUBLIC_URL: 'https://x.trycloudflare.com/', LOG_LEVEL: 'warn', NODE_ENV: 'production', TRUST_PROXY: 'true' },
       '/repo',
     );
     expect(config.port).toBe(4100);
@@ -25,12 +26,14 @@ describe('loadConfig', () => {
     expect(config.publicUrl).toBe('https://x.trycloudflare.com');
     expect(config.logLevel).toBe('warn');
     expect(config.nodeEnv).toBe('production');
+    expect(config.trustProxy).toBe(true);
   });
 
   it('rejects a missing or short PIN and a bad port', () => {
     expect(() => loadConfig({}, '/repo')).toThrow(/HOST_PIN/);
     expect(() => loadConfig({ HOST_PIN: '12' }, '/repo')).toThrow(/HOST_PIN/);
     expect(() => loadConfig({ HOST_PIN: 'abcd', PORT: 'nope' }, '/repo')).toThrow(/PORT/);
+    expect(() => loadConfig({ HOST_PIN: 'abcd', TRUST_PROXY: 'yes' }, '/repo')).toThrow(/TRUST_PROXY/);
   });
 
   it('treats a blank PUBLIC_URL as unset', () => {

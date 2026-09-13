@@ -24,6 +24,48 @@ cp .env.example .env      # then edit HOST_PIN
 Set `HOST_PIN` in `.env` to something only the host knows. It protects the host panel and the
 question editor.
 
+## Hosting it online (no laptop server, no tunnel)
+
+The whole game is one long-running Node server with WebSockets and a SQLite file, so it needs a
+host that runs a real process with a persistent disk. **Vercel, Netlify and GitHub Pages cannot run
+it**: they are serverless or static, so the buzzers, the live projector and the saved answers
+would all break. Railway or Fly.io work well and cost a few dollars a month (or nothing on a trial).
+The repo ships a `Dockerfile`, `railway.json` and `fly.toml`.
+
+Run exactly **one instance**: the game state lives in memory and in the SQLite file of that
+instance.
+
+### Railway (easiest)
+
+1. Push this repo to GitHub, then in Railway choose **New project → Deploy from GitHub repo**.
+   It picks up the `Dockerfile` automatically.
+2. In the service **Variables**, add:
+   - `HOST_PIN` – the PIN the host types in (at least 4 characters)
+   - `PUBLIC_URL` – the public address Railway gives you, e.g. `https://msa-feud.up.railway.app`
+     (Settings → Networking → Generate domain, then paste it here)
+3. In **Volumes**, add a volume mounted at `/data`. Without it, every redeploy wipes the questions
+   and answers.
+4. Deploy. `https://<your-domain>/display` is the projector, `/host` the host panel, and the QR
+   code on the projector already carries the public link.
+
+### Fly.io
+
+```bash
+fly launch --copy-config --no-deploy      # keeps fly.toml; pick an app name and region
+fly volumes create feud_data --size 1
+fly secrets set HOST_PIN=your-pin PUBLIC_URL=https://<app>.fly.dev
+fly deploy
+```
+
+### On the day
+
+- Open `https://<your-domain>/display` on the projector laptop and click once. Open `/host` on your
+  phone. Everything else is the same as the runbook below, minus `npm run event`.
+- The venue must have internet for the projector laptop and the host phone. If that is a risk,
+  keep the laptop setup (`npm run event`) as a fallback: it works on the venue wifi alone.
+- Redeploying restarts the server; the game and the answers come back from the volume, but phones
+  reconnect on their own within a few seconds.
+
 ## Event-day runbook
 
 1. **Start everything**

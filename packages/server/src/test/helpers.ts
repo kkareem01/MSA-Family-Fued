@@ -21,6 +21,7 @@ export function testConfig(overrides: Partial<ServerConfig> = {}): ServerConfig 
     publicUrl: null,
     logLevel: 'silent',
     nodeEnv: 'test',
+    trustProxy: false,
     repoRoot: '/nonexistent',
     ...overrides,
   };
@@ -28,10 +29,10 @@ export function testConfig(overrides: Partial<ServerConfig> = {}): ServerConfig 
 
 export type TestApp = BuiltApp & { db: Database; hostHeaders: Readonly<Record<string, string>> };
 
-export async function buildTestApp(options: { db?: Database; surveyRateLimitMax?: number } = {}): Promise<TestApp> {
+export async function buildTestApp(options: { db?: Database; surveyRateLimitMax?: number; trustProxy?: boolean } = {}): Promise<TestApp> {
   const db = options.db ?? createTestDb();
   const built = await buildApp({
-    config: testConfig(),
+    config: testConfig({ trustProxy: options.trustProxy ?? false }),
     db,
     rateLimits: { surveyMax: options.surveyRateLimitMax ?? 1000, globalMax: 100000, timeWindowMs: 60_000 },
   });

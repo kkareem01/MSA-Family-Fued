@@ -33,7 +33,7 @@ export type BuiltApp = Readonly<{ app: FastifyInstance; io: FeudServer; services
 
 /** Wires repositories, services, plugins, routes and Socket.IO onto one Fastify instance. */
 export async function buildApp({ config, db, rateLimits = DEFAULT_RATE_LIMITS, now = Date.now }: BuildAppOptions): Promise<BuiltApp> {
-  const app = Fastify({ logger: config.logLevel === 'silent' ? false : { level: config.logLevel } });
+  const app = Fastify({ logger: config.logLevel === 'silent' ? false : { level: config.logLevel }, trustProxy: config.trustProxy });
 
   const questions = createQuestionRepo(db);
   const boards = createBoardAnswerRepo(db);

@@ -66,4 +66,20 @@ describe('survey routes', () => {
     }
     expect(codes).toEqual([200, 200, 200, 429]);
   });
+
+  it('keys the rate limit by the forwarded address when a hosting proxy is trusted', async () => {
+    await t.app.close();
+    t = await buildTestApp({ surveyRateLimitMax: 1, trustProxy: true });
+    const openId = await seedQuestion(t, 'Open', 'open');
+    const submit = (ip: string, i: number) =>
+      t.app.inject({
+        method: 'POST',
+        url: '/api/survey/responses',
+        headers: { 'x-forwarded-for': ip },
+        payload: { token: `token-proxy-${ip}-${i}`, answers: [{ questionId: openId, text: `a${i}` }] },
+      });
+    expect((await submit('203.0.113.5', 1)).statusCode).toBe(200);
+    expect((await submit('203.0.113.5', 2)).statusCode).toBe(429);
+    expect((await submit('203.0.113.6', 3)).statusCode).toBe(200);
+  });
 });
