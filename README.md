@@ -83,6 +83,10 @@ override any of them (see `sounds/README.md`). Reload the display page after add
   every survey answer come back from `data/feud.db`. The tunnel URL changes, so show the new QR.
 - **Tunnel failed**: the game still runs. Use `--no-tunnel` on the same wifi, or paste any public
   URL under Host → Settings.
+- **Public link shows a blank 404**: the launcher starts cloudflared with its own empty config, so
+  a personal `~/.cloudflared/config.yml` (named tunnels with ingress rules) is ignored on purpose.
+  If you run `cloudflared` by hand instead, add `--config /path/to/empty.yml`. The link usually
+  answers within about ten seconds of the banner appearing.
 - **Buzzer says wrong code**: codes may have been re-issued. Send the new link.
 - **Host panel says "Wrong PIN"**: it must match `HOST_PIN` in `.env`.
 - **Start fresh**: stop the server and delete `data/feud.db` (this erases questions and answers).

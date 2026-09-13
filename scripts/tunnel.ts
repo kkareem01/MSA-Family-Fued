@@ -1,8 +1,26 @@
 import { spawn, type ChildProcess } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 export const TUNNEL_URL_RE = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/u;
 const DEFAULT_TIMEOUT_MS = 60_000;
 const DEFAULT_BINARY = 'cloudflared';
+const EMPTY_CONFIG_NAME = 'msa-feud-cloudflared.yml';
+
+/**
+ * A quick tunnel must not inherit the user's own ~/.cloudflared/config.yml: its ingress rules
+ * (typically ending in `http_status:404`) would override --url and every request would 404.
+ */
+export function writeEmptyTunnelConfig(dir: string = tmpdir()): string {
+  const path = join(dir, EMPTY_CONFIG_NAME);
+  writeFileSync(path, '{}\n', 'utf8');
+  return path;
+}
+
+export function tunnelArgs(port: number, configPath: string): readonly string[] {
+  return ['tunnel', '--config', configPath, '--url', `http://localhost:${port}`, '--no-autoupdate'];
+}
 
 /** Finds the public quick-tunnel URL anywhere in cloudflared's chatter. */
 export function parseTunnelUrl(text: string): string | null {
@@ -11,12 +29,13 @@ export function parseTunnelUrl(text: string): string | null {
 
 export type Tunnel = Readonly<{ child: ChildProcess; url: Promise<string> }>;
 
-export type TunnelOptions = Readonly<{ timeoutMs?: number; binary?: string }>;
+export type TunnelOptions = Readonly<{ timeoutMs?: number; binary?: string; configPath?: string }>;
 
 /** Starts a Cloudflare quick tunnel to localhost:port and resolves with its https URL. */
 export function startTunnel(port: number, options: TunnelOptions = {}): Tunnel {
   const binary = options.binary ?? DEFAULT_BINARY;
-  const child = spawn(binary, ['tunnel', '--url', `http://localhost:${port}`, '--no-autoupdate'], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const configPath = options.configPath ?? writeEmptyTunnelConfig();
+  const child = spawn(binary, [...tunnelArgs(port, configPath)], { stdio: ['ignore', 'pipe', 'pipe'] });
   const url = new Promise<string>((resolve, reject) => {
     let settled = false;
     const finish = (fn: () => void) => {
