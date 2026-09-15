@@ -86,21 +86,31 @@ describe('DisplayPage', () => {
     expect(contexts).toHaveLength(1);
   });
 
-  it('puts the survey spotlight over any phase when the host asks for it', async () => {
+  it('shows the survey spotlight only while nothing is on the board', async () => {
     render(<DisplayPage />);
     const socket = sockets[0]!;
     const meta = { publicUrl: 'https://abc.trycloudflare.com', lanUrl: 'http://192.168.1.2:3000', surveyPath: '/survey', buzzerPath: '/buzzer', spotlight: 'survey' };
     act(() => {
       socket.serverEmit('connect');
-      socket.serverEmit('state', { seq: 1, state: stateInPhase('in_play'), canUndo: false });
+      socket.serverEmit('state', { seq: 1, state: stateInPhase('idle'), canUndo: false });
       socket.serverEmit('meta', meta);
     });
     const codes = await screen.findAllByAltText('QR code for https://abc.trycloudflare.com/survey');
     expect(codes.some((img) => img.classList.contains('spotlight-code'))).toBe(true);
-    expect(screen.getByText(/Scan to answer/u)).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Survey' })).toBeInTheDocument();
     expect(screen.getByText('Name a fruit')).toBeInTheDocument();
+
+    // A round starts: the board must win, even though the host never turned the spotlight off.
+    act(() => socket.serverEmit('state', { seq: 2, state: stateInPhase('faceoff'), canUndo: true }));
+    expect(screen.queryByRole('region', { name: 'Survey' })).not.toBeInTheDocument();
+    expect(document.querySelector('.scene')).not.toBeNull();
+
+    // Back to idle between rounds: the spotlight returns on its own.
+    act(() => socket.serverEmit('state', { seq: 3, state: stateInPhase('idle'), canUndo: true }));
+    expect(screen.getByRole('region', { name: 'Survey' })).toBeInTheDocument();
+
     act(() => socket.serverEmit('meta', { ...meta, spotlight: null }));
-    expect(screen.queryByText(/Scan to answer/u)).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Survey' })).not.toBeInTheDocument();
   });
 
   it('reports connection problems', () => {

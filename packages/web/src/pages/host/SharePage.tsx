@@ -43,8 +43,8 @@ function ProjectorToggle({ spotlight, busy, onChange }: { spotlight: Spotlight; 
       </button>
       <p className="muted small">
         {showing
-          ? 'The projector is showing the QR code and the open questions over the game.'
-          : 'Puts a giant QR code and the open questions on the projector, on top of whatever is showing.'}
+          ? 'The projector is showing the QR code and the open questions whenever no round is on the board. Rounds always show over it.'
+          : 'Puts a giant QR code and the open questions on the projector whenever no round is on the board. It steps aside during play and comes back between rounds.'}
       </p>
     </div>
   );

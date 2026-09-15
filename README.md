@@ -112,8 +112,10 @@ fly deploy
    LAN address printed in the terminal. Enter the PIN once; it is remembered.
 
 4. **Survey link**: Host → **Share QR** shows the code and the link. *Show on projector* puts a
-   giant QR plus the open questions on the big screen at any point in the game. The idle screen
-   always shows it too. Share it before the event: the survey is open whenever a question is *open*.
+   giant QR plus the open questions on the big screen whenever no round is on the board; it steps
+   aside during play and comes back between rounds, so it can be left on all evening. The idle
+   screen always shows a QR too. Share it before the event: the survey is open whenever a question
+   is *open*.
 
 5. **Buzzers**: in Host → *Settings, links and buzzer codes* there is a link and a 4-letter code
    per team. Send each face-off player their link (or the code and the `/buzzer` address).

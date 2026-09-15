@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { api, hostSignIn, openDisplay } from './fixtures';
+import { api, hostSignIn, openDisplay, resetGame } from './fixtures';
 
 test('host shares the survey QR and puts it on the projector', async ({ browser, request }) => {
+  await resetGame(request); // the spotlight only shows while nothing is on the board
   await api(request, 'put', '/api/settings/public-url', { url: 'https://e2e.example.com' });
   await api(request, 'put', '/api/settings/spotlight', { spotlight: null });
   try {

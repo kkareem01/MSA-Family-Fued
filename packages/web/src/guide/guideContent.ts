@@ -46,7 +46,7 @@ export const GUIDE_SECTIONS: readonly GuideSection[] = [
       { title: 'Open the survey', detail: 'Tap “Open survey” on a question. It appears on every phone that scanned the QR code, and the tally starts filling.' },
       {
         title: 'Share the QR code',
-        detail: 'Host → Share QR shows a big code and the link. “Show on projector” puts it on the big screen over whatever is showing, with the open questions.',
+        detail: 'Host → Share QR shows a big code and the link. “Show on projector” puts it on the big screen with the open questions whenever no round is on the board; rounds always show over it.',
         link: { to: '/host/share', label: 'Share QR' },
       },
       { title: 'Close the survey', detail: 'When you have enough answers, tap “Close survey”. Finalizing a board also closes it.' },

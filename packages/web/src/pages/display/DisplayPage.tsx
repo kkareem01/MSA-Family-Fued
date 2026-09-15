@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Cue } from '@feud/shared';
+import type { Cue, GameState, MetaPayload } from '@feud/shared';
 import { GameSocketProvider, useGameSocketContext } from '../../socket/GameSocketContext';
 import { useSoundEngine } from '../../sound/useSoundEngine';
 import { useOpenQuestions } from '../../hooks/useOpenQuestions';
@@ -21,14 +21,23 @@ function ConnectingScreen({ error }: { error: string | null }) {
   );
 }
 
+/**
+ * The survey takeover only shows while nothing is on the board. A host who leaves it on during a
+ * round would otherwise hide the whole game behind a QR code; it comes back by itself between rounds.
+ */
+export function showsSurveySpotlight(phase: GameState['phase'], spotlight: MetaPayload['spotlight'] | undefined): boolean {
+  return spotlight === 'survey' && phase === 'idle';
+}
+
 function DisplayContent({ fx }: { fx: ReturnType<typeof useDisplayFx>['fx'] }) {
   const { envelope, meta, connectError } = useGameSocketContext();
   const openQuestions = useOpenQuestions();
   if (!envelope) return <ConnectingScreen error={connectError} />;
+  const spotlight = showsSurveySpotlight(envelope.state.phase, meta?.spotlight);
   return (
     <>
       <DisplayScene state={envelope.state} meta={meta} fx={fx} openCount={openQuestions?.length ?? null} />
-      {meta?.spotlight === 'survey' ? <SurveySpotlight url={surveyUrlFrom(meta)} questions={openQuestions ?? []} /> : null}
+      {spotlight ? <SurveySpotlight url={surveyUrlFrom(meta)} questions={openQuestions ?? []} /> : null}
     </>
   );
 }
